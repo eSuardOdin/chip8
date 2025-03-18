@@ -1,5 +1,6 @@
 /*
  * Just trying to fetch instructions and display them
+ * http://devernay.free.fr/hacks/chip8/C8TECH10.HTM
  */
 
 
@@ -16,12 +17,14 @@ int load_rom(FILE *fp, uint8_t *ram);
 typedef enum {SUCCESS, RAM_OVERFLOW} t_status;
 int main(int argc, char* argv[])
 {
-    int status;
-    uint8_t ram[MAX_RAM] = {0};
-    uint8_t pc = 0;
-    uint16_t opcode;
-    FILE *fp;
+    int status;                 // Error status
+    uint8_t ram[MAX_RAM] = {0}; // RAM
+    uint8_t V[16];              // Registers
+    uint8_t pc = 0;             // Program counter
+    uint16_t opcode;            // Fetched opcode
+    FILE *fp;                   // ROM (well, not read only actually...)
     
+    /* Open ROM */
     fp = fopen(argv[1], "rb");
     if(fp == NULL)
     {
@@ -29,18 +32,20 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
     
+    /* Load ROM into RAM */
     if((status = load_rom(fp, ram)))
     {
         // Error handling todo
         exit(EXIT_FAILURE);
     }
     
-    // Test fetching
+    /* Fetching test */
     for(pc; pc <= 8; pc += 2)
     {
         fetch_instruction(pc, &opcode, ram);
         printf("%04x\n", opcode);
     }
+
     exit(EXIT_SUCCESS);
 }
 
