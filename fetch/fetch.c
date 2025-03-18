@@ -7,10 +7,19 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
+#define MAX_RAM 4096
+
+int fetch_instruction(int pc, uint16_t *opcode, uint8_t *ramp);
+int load_rom(FILE *fp, uint8_t *ram);
+typedef enum {SUCCESS, RAM_OVERFLOW} t_status;
 int main(int argc, char* argv[])
 {
-    unsigned char buffer[2];
+    int status;
+    uint8_t ram[MAX_RAM] = {0};
+    uint8_t pc = 0;
+    uint16_t opcode;
     FILE *fp;
     
     fp = fopen(argv[1], "rb");
@@ -19,13 +28,42 @@ int main(int argc, char* argv[])
         perror("fopen");
         exit(EXIT_FAILURE);
     }
-
-    // Read
-    for(int i = 0; i < 8; i++)
+    
+    if((status = load_rom(fp, ram)))
     {
-        fread(buffer, sizeof(buffer), 1, fp);
-        printf("%02X%02X ", buffer[1], buffer[0]);
+        // Error handling todo
+        exit(EXIT_FAILURE);
     }
-    printf("\n");
+    
+    // Test fetching
+    for(pc; pc <= 8; pc += 2)
+    {
+        fetch_instruction(pc, &opcode, ram);
+        printf("%04x\n", opcode);
+    }
     exit(EXIT_SUCCESS);
+}
+
+
+int load_rom(FILE *fp, uint8_t *ram)
+{
+    int ram_i = 0;
+    while(fread(&ram[ram_i], 1, 1, fp))
+    {
+        if(ram_i >= MAX_RAM)
+        {
+            fprintf(stderr, "Ram overflow !\n");
+            return (int)RAM_OVERFLOW;
+        }
+        ram_i++;
+        //opcode = (buffer[1] << 8 | buffer[0]);
+        //printf("%02X%02X -> %d\n", buffer[1], buffer[0], opcode);
+    }
+
+    return (int)SUCCESS;
+}
+
+int fetch_instruction(int pc, uint16_t *opcode, uint8_t *ramp)
+{
+    *opcode = (ramp[pc+1] << 8) | ramp[pc];
 }
