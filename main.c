@@ -39,15 +39,11 @@ int main(int argc, char* argv[])
         printf("\n");
     }
 	
-    opcode = 0x2e23;
-    process_opcode(&opcode, chip8);
-
-    // Checking for skip_equal
-    chip8->V[2] = 0xbb;
-    chip8->V[10] = 0x12;
-    
-	opcode = 0x7a09;
+    chip8->V[0] = 0x3;
+    chip8->V[1] = 0x6;
+	opcode = 0x8011;
 	process_opcode(&opcode, chip8);
+
     free(chip8);
     exit(EXIT_SUCCESS);
 }

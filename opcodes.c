@@ -31,6 +31,7 @@ t_status process_opcode(uint16_t *opcode, chip8_t *c)
 			add_val(opcode, c);
 			break;
 		case 0x8:
+			process_8(opcode, c);
 			break;
 		case 0x9:
 			break;
@@ -245,17 +246,94 @@ t_status add_val(uint16_t *opcode, chip8_t *c)
 	return SUCCESS;
 }
 
-/* Nibble 8 */
-t_status process_8(uint16_t *opcode, chip8_t *c);
-t_status load_reg(uint16_t *opcode, chip8_t *c);    // LD Vx, Vy
-t_status or_reg(uint16_t *opcode, chip8_t *c);      // OR Vx, Vy
-t_status and_reg(uint16_t *opcode, chip8_t *c);     // AND Vx, Vy
-t_status xor_reg(uint16_t *opcode, chip8_t *c);     // XOR Vx, Vy
-t_status add_reg(uint16_t *opcode, chip8_t *c);     // ADD Vx, Vy
-t_status sub_reg(uint16_t *opcode, chip8_t *c);     // SUB Vx, Vy
-t_status shr_reg(uint16_t *opcode, chip8_t *c);     // SHR Vx {, Vy}
-t_status sub_reg_nb(uint16_t *opcode, chip8_t *c);  // SUBN Vx, Vy
-t_status shl_reg(uint16_t *opcode, chip8_t *c);     // SHL Vx {, Vy}
+/* --- Nibble 8 --- */
+t_status process_8(uint16_t *opcode, chip8_t *c)
+{
+	switch(*opcode & 0xF)
+	{
+		case 0x0:
+			return load_reg(opcode,c);
+			break;
+		case 0x1:
+			return or_reg(opcode,c);
+			break;
+		case 0x2:
+			return and_reg(opcode,c);
+			break;
+		case 0x3:
+			return xor_reg(opcode,c);
+			break;
+		case 0x4:
+			return add_reg(opcode,c);
+			break;
+		case 0x5:
+			return sub_reg(opcode,c);
+			break;
+		case 0x6:
+			return shr_reg(opcode,c);
+			break;
+		case 0x7:
+			return sub_reg_nb(opcode,c);
+			break;
+		case 0xe:
+			return shl_reg(opcode,c);
+			break;
+	}
+}
+
+/*
+ 	8xy0 - LD Vx, Vy
+	Set Vx = Vy.
+	Stores the value of register Vy in register Vx.
+*/
+t_status load_reg(uint16_t *opcode, chip8_t *c)
+{
+	printf("LD Vx, Vy : Setting the value of V[%0x] (%0x) on value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
+	c->V[(*opcode & 0xF00) >> 8] = c->V[(*opcode & 0xF0) >> 4];
+	printf("Value has been set on %0x.\n", c->V[(*opcode & 0xF00) >> 8]);
+	return SUCCESS;
+}
+
+/*
+	8xy1 - OR Vx, Vy
+	Set Vx = Vx OR Vy.
+	Performs a bitwise OR on the values of Vx and Vy, then stores the result in Vx. A bitwise OR compares the corrseponding bits from two values, and if either bit is 1, then the same bit in the result is also 1. Otherwise, it is 0. 
+*/
+t_status or_reg(uint16_t *opcode, chip8_t *c)
+{
+	printf("OR Vx, Vy : ORing the value of V[%0x] (%0x) with value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
+	c->V[(*opcode & 0xF00) >> 8] |= c->V[(*opcode & 0xF0) >> 4];
+	printf("Value has been set on %0x.\n", c->V[(*opcode & 0xF00) >> 8]);
+	return SUCCESS;
+}
+t_status and_reg(uint16_t *opcode, chip8_t *c)
+{
+	return SUCCESS;
+}
+t_status xor_reg(uint16_t *opcode, chip8_t *c)
+{
+	return SUCCESS;
+}
+t_status add_reg(uint16_t *opcode, chip8_t *c)
+{
+	return SUCCESS;
+}
+t_status sub_reg(uint16_t *opcode, chip8_t *c)
+{
+	return SUCCESS;
+}
+t_status shr_reg(uint16_t *opcode, chip8_t *c)
+{
+	return SUCCESS;
+}
+t_status sub_reg_nb(uint16_t *opcode, chip8_t *c)
+{
+	return SUCCESS;
+}
+t_status shl_reg(uint16_t *opcode, chip8_t *c)
+{
+	return SUCCESS;
+}
 
 /* Nibble 9 */
 t_status skip_neq_reg(uint16_t *opcode, chip8_t *c);// SNE Vx, Vy
