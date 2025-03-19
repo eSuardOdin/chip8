@@ -39,10 +39,28 @@ int main(int argc, char* argv[])
         printf("\n");
     }
 	
+	/*	
     chip8->V[0] = 0x3;
     chip8->V[1] = 0x6;
 	opcode = 0x8011;
 	process_opcode(&opcode, chip8);
+	opcode = 0x8012;
+	process_opcode(&opcode, chip8);
+	opcode = 0x8013;
+	process_opcode(&opcode, chip8);
+	*/
+
+	chip8->V[0] = 0xF0;
+    chip8->V[1] = 0x6;
+	chip8->V[2] = 0xEE;
+	// Test adding with no overflow
+	opcode = 0x8014;
+    process_opcode(&opcode, chip8);
+	// Test with overflow
+	opcode = 0x8024;
+    process_opcode(&opcode, chip8);
+
+	
 
     free(chip8);
     exit(EXIT_SUCCESS);

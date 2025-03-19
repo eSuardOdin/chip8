@@ -306,16 +306,48 @@ t_status or_reg(uint16_t *opcode, chip8_t *c)
 	printf("Value has been set on %0x.\n", c->V[(*opcode & 0xF00) >> 8]);
 	return SUCCESS;
 }
+
+/*
+	8xy2 - AND Vx, Vy
+	Set Vx = Vx AND Vy.
+	Performs a bitwise AND on the values of Vx and Vy, then stores the result in Vx. A bitwise AND compares the corrseponding bits from two values, and if both bits are 1, then the same bit in the result is also 1. Otherwise, it is 0. 
+*/
 t_status and_reg(uint16_t *opcode, chip8_t *c)
 {
+	printf("AND Vx, Vy : ANDing the value of V[%0x] (%0x) with value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
+    c->V[(*opcode & 0xF00) >> 8] &= c->V[(*opcode & 0xF0) >> 4];
+    printf("Value has been set on %0x.\n", c->V[(*opcode & 0xF00) >> 8]);
 	return SUCCESS;
 }
+
+/*
+	8xy3 - XOR Vx, Vy
+	Set Vx = Vx XOR Vy.
+	Performs a bitwise exclusive OR on the values of Vx and Vy, then stores the result in Vx. An exclusive OR compares the corrseponding bits from two values, and if the bits are not both the same, then the corresponding bit in the result is set to 1. Otherwise, it is 0.
+*/
 t_status xor_reg(uint16_t *opcode, chip8_t *c)
 {
+	printf("XOR Vx, Vy : XORing the value of V[%0x] (%0x) with value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
+    c->V[(*opcode & 0xF00) >> 8] ^= c->V[(*opcode & 0xF0) >> 4];
+    printf("Value has been set on %0x.\n", c->V[(*opcode & 0xF00) >> 8]);
 	return SUCCESS;
 }
+
+/*
+	8xy4 - ADD Vx, Vy
+	Set Vx = Vx + Vy, set VF = carry.
+	The values of Vx and Vy are added together. If the result is greater than 8 bits (i.e., > 255,) VF is set to 1, otherwise 0. Only the lowest 8 bits of the result are kept, and stored in Vx.
+*/
 t_status add_reg(uint16_t *opcode, chip8_t *c)
 {
+	printf("ADD Vx, Vy : adding the value of V[%0x] (%0x) with value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
+	
+	/* Adding and put result in X register and carry register (VF)*/
+	uint16_t res = c->V[(*opcode & 0xF00) >> 8] + c->V[(*opcode & 0xF0) >> 4];
+	c->V[(*opcode & 0xF00) >> 8] = res & 0xFF;
+	c->V[0xF] = (res & 0xF00) >> 8;
+
+	printf("Values has been set on V[%0x]: %0x, VF: %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);
 	return SUCCESS;
 }
 t_status sub_reg(uint16_t *opcode, chip8_t *c)
