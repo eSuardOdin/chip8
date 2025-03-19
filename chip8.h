@@ -39,7 +39,7 @@ typedef struct
 } chip8_t;
 
 /* Error status enum */
-typedef enum {SUCCESS, RAM_OVERFLOW} t_status;
+typedef enum {SUCCESS, RAM_OVERFLOW, STACK_OVERFLOW} t_status;
 
 
 // --- Functions ---

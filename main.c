@@ -35,10 +35,30 @@ int main(int argc, char* argv[])
         fetch_instruction(chip8, &opcode);
         //printf("%04x\n", opcode);
 		if(!opcode) break;
-        process_opcode(&opcode);
+        process_opcode(&opcode, chip8);
+        printf("\n");
     }
 	
-	free(chip8);
+    opcode = 0x2e23;
+    process_opcode(&opcode, chip8);
+
+    // Checking for skip_equal
+    chip8->V[2] = 0xbb;
+    chip8->V[12] = 0x12;
+//    opcode = 0x32aa;
+//    process_opcode(&opcode, chip8);
+//    opcode = 0x32bb;
+//    process_opcode(&opcode, chip8);
+    opcode = 0x52a0;  
+    process_opcode(&opcode, chip8);
+    
+    opcode = 0x6212;
+    process_opcode(&opcode, chip8);    
+
+    opcode = 0x52a0;  
+    process_opcode(&opcode, chip8);
+
+    free(chip8);
     exit(EXIT_SUCCESS);
 }
 

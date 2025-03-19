@@ -7,9 +7,17 @@ t_status init_chip8(chip8_t *c)
 {
 	// TODO : Handle NULL error
 	memset(c, 0, sizeof(chip8_t));
-	// Add here special cases (stack pointer ?)
+    c->sp = -1;
 	return SUCCESS;
 }
+
+/* Pop the stack */
+/*t_status pop_stack(chip8_t *c)
+{
+
+
+}*/
+
 
 /* Free chip8, just a placeholder for now */
 t_status free_chip8(chip8_t *c)
