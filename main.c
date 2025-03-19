@@ -30,11 +30,12 @@ int main(int argc, char* argv[])
     }
     
     /* Fetching test */
-    for(chip8->pc; chip8->pc <= 8; chip8->pc += 2)
+    for(chip8->pc; chip8->pc <= MAX_RAM; chip8->pc += 2)
     {
         fetch_instruction(chip8, &opcode);
         //printf("%04x\n", opcode);
-		process_opcode(&opcode);
+		if(!opcode) break;
+        process_opcode(&opcode);
     }
 	
 	free(chip8);

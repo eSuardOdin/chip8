@@ -35,10 +35,11 @@ t_status load_rom(chip8_t *c, FILE *fp)
 }
 /* 
 	Load instruction corresponding to current pc 
-	(put it in little endian)
+	(put it in little endian?)
 */
 t_status fetch_instruction(chip8_t *c, uint16_t *opcode)
 {
-	*opcode = (c->ram[c->pc+1] << 8) | c->ram[c->pc];
+//	*opcode = (c->ram[c->pc+1] << 8) | c->ram[c->pc];
+	*opcode = (c->ram[c->pc] << 8) | c->ram[c->pc+1];
 }
 

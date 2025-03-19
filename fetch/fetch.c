@@ -12,6 +12,7 @@
 
 #define MAX_RAM 4096
 
+int decode(uint16_t *opcode);
 int fetch_instruction(int pc, uint16_t *opcode, uint8_t *ramp);
 int load_rom(FILE *fp, uint8_t *ram);
 typedef enum {SUCCESS, RAM_OVERFLOW} t_status;
