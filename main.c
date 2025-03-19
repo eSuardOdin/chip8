@@ -44,20 +44,10 @@ int main(int argc, char* argv[])
 
     // Checking for skip_equal
     chip8->V[2] = 0xbb;
-    chip8->V[12] = 0x12;
-//    opcode = 0x32aa;
-//    process_opcode(&opcode, chip8);
-//    opcode = 0x32bb;
-//    process_opcode(&opcode, chip8);
-    opcode = 0x52a0;  
-    process_opcode(&opcode, chip8);
+    chip8->V[10] = 0x12;
     
-    opcode = 0x6212;
-    process_opcode(&opcode, chip8);    
-
-    opcode = 0x52a0;  
-    process_opcode(&opcode, chip8);
-
+	opcode = 0x7a09;
+	process_opcode(&opcode, chip8);
     free(chip8);
     exit(EXIT_SUCCESS);
 }

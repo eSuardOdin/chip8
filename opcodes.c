@@ -28,6 +28,7 @@ t_status process_opcode(uint16_t *opcode, chip8_t *c)
             load_val(opcode, c);
 			break;
 		case 0x7:
+			add_val(opcode, c);
 			break;
 		case 0x8:
 			break;
@@ -159,14 +160,14 @@ t_status skip_eq_val(uint16_t *opcode, chip8_t *c)
     }
     else
     {
-        printf("values are different, not skipping next instruction.\n");
+        printf("values are different, no skip.\n");
     }
     return SUCCESS;
 }
 
 
 
-/* Nibble 4 */
+/* --- Nibble 4 --- */
 
 /*
     4xkk - SNE Vx, byte
@@ -188,12 +189,12 @@ t_status skip_neq_val(uint16_t *opcode, chip8_t *c)
     }
     else
     {
-        printf("values are the same, not skipping next instruction.\n");
+        printf("values are the same, no skip.\n");
     }
     return SUCCESS;
 }
 
-/* Nibble 5 */
+/* --- Nibble 5 --- */
 
 /*
     5xy0 - SE Vx, Vy
@@ -212,12 +213,12 @@ t_status skip_eq_reg(uint16_t *opcode, chip8_t *c)
     }
     else
     {  
-        printf("values are the same, skipping next instruction.\n");
+        printf("values are different, no skip.\n");
     }
     return SUCCESS;
 }
 
-/* Nibble 6 */
+/* --- Nibble 6 --- */
 
 /*
     6xkk - LD Vx, byte
@@ -230,8 +231,19 @@ t_status load_val(uint16_t *opcode, chip8_t *c)
     return SUCCESS;
 }
 
-/* Nibble 7 */
-t_status add_val(uint16_t *opcode, chip8_t *c);     // ADD Vx, byte
+/* --- Nibble 7 --- */
+/*
+ 	7xkk - ADD Vx, byte
+	Set Vx = Vx + kk.
+	Adds the value kk to the value of register Vx, then stores the result in Vx. 
+*/
+t_status add_val(uint16_t *opcode, chip8_t *c)
+{
+	printf("ADD Vx, byte : Adding %0x to V[%d] ", *opcode & 0xFF,(*opcode & 0xF00) >> 8);
+	c->V[(*opcode & 0xF00) >> 8] += *opcode & 0xFF;
+	printf("-> register value is now %0x.\n", c->V[(*opcode & 0xF00) >> 8]);
+	return SUCCESS;
+}
 
 /* Nibble 8 */
 t_status process_8(uint16_t *opcode, chip8_t *c);
