@@ -8,7 +8,7 @@
 t_status process_opcode(uint16_t *opcode, chip8_t *c)
 {
 	uint16_t dig = *opcode >> 12;
-	printf("%04x : ", *opcode);
+	printf("PC = %0x | instruction : %04x ", c->pc, *opcode);
 	switch(dig)
 	{
 		case 0x0:
@@ -49,6 +49,7 @@ t_status process_opcode(uint16_t *opcode, chip8_t *c)
 		case 0xc:
 			break;
 		case 0xd:
+            return draw(opcode, c);
 			break;
 		case 0xe:
 			break;
@@ -517,15 +518,68 @@ t_status draw(uint16_t *opcode, chip8_t *c)
 {
     uint8_t n = *opcode & 0xF;
     uint8_t reg_x, reg_y;
-    reg_x = (*opcode & 0xF00) >> 8;
-    reg_y = (*opcode & 0xF0) >> 4;
+    reg_x = c->V[(*opcode & 0xF00) >> 8];
+    reg_y = c->V[(*opcode & 0xF0) >> 4];
     uint16_t addr = c->I;
+    printf("##############\nEntering draw func with values :\n - Vx = %d\n - Vy = %d\n - I = %d\n", reg_x, reg_y, c->I);
+    // Reset flag register to check for collision (XOR)
+    c->V[0xF] = 0;
     // Just changing display table and will display
-    for(uint8_t i = 0; i < n; i++)
+    for(uint8_t y = 0; y < n; y++)
     {
-        // On va print un octet
+        // Getting the "line" of sprite
+        uint8_t sprite = c->ram[addr + y];
+        printf("Next line to print : %0x\n", sprite);
+        for(uint8_t x = 0; x <= 8; x++)
+        {
+            // Masking the current observed pixel
+            uint8_t px = (sprite >> (7 - x)) & 1;
+            // Checking for collision (refactor later for a true XOR ?)
+            if(px & c->display[reg_x + x][reg_y + y])
+            {
+                c->V[0xF] = 1;
+                c->display[reg_x + x][reg_y + y] = 0;
+            }
+            else
+            {
+                c->display[reg_x + x][reg_y + y] = px;
+            }
+            // Putting px value in display
+            // Print on screen
+            if(px)
+            {
+                SDL_SetRenderDrawColor(c->renderer, 255, 255, 255, 255);
+                SDL_Rect rect;
+                rect.x = (reg_x + x) * PIX_SIZE;
+                rect.y = (reg_y + y) * PIX_SIZE;
+                rect.w = PIX_SIZE;
+                rect.h = PIX_SIZE;
+                //SDL_RenderDrawRect(c->renderer, &rect);
+                SDL_RenderFillRect(c->renderer, &rect);
+            }
+            else
+            {
+                //SDL_SetRenderDrawColor(c->renderer, 0, 0, 0, 255);
+            }
+        }
     }
-    printf("DRW Vx, Vy, nibble : Displaying ");
+    SDL_RenderPresent(c->renderer);
+    printf("DRW Vx, Vy, nibble : Displaying \n");
+    for(int y = 0; y < HEIGHT; y++)
+    {
+        for(int x = 0; x < WIDTH; x++)
+        {
+            if(c->display[x][y])
+            {
+                printf("█");
+            }
+            else
+            {
+                printf(" ");
+            }
+        }
+        printf("\n");
+    }
 }
 
 /* Nibble E */

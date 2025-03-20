@@ -33,6 +33,8 @@ int main(int argc, char* argv[])
     }
 
     run_chip8(chip8);
+    
+    #pragma region tests
 	/*	
     chip8->V[0] = 0x3;
     chip8->V[1] = 0x6;
@@ -66,6 +68,7 @@ int main(int argc, char* argv[])
     // process_opcode(&opcode, chip8);    
     //while(1) {}
     //free(chip8);
+    #pragma endregion
     exit(EXIT_SUCCESS);
 }
 

@@ -1,4 +1,5 @@
 #include "chip8.h"
+#include "opcodes.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_render.h>
@@ -35,8 +36,9 @@ t_status init_chip8(chip8_t *c)
 	}
 
 	
+	// Stack pointer and Program counter -> See doc for 0x200
     c->sp = -1;
-
+	c->pc = 0x200; 
 	// Show window
 	SDL_ShowWindow(c->window);
 	
@@ -66,7 +68,7 @@ t_status free_chip8(chip8_t *c)
 t_status load_rom(chip8_t *c, FILE *fp)
 {
 	int i = 0;
-	while(fread(&(c->ram[i]), 1, 1, fp) == 1)
+	while(fread(&(c->ram[0x200 + i]), 1, 1, fp) == 1)
 	{
 		if(i >= MAX_RAM)
 		{
@@ -83,7 +85,7 @@ t_status load_rom(chip8_t *c, FILE *fp)
 */
 t_status fetch_instruction(chip8_t *c, uint16_t *opcode)
 {
-	// *opcode = (c->ram[c->pc+1] << 8) | c->ram[c->pc]; // Inverted
+	//*opcode = (c->ram[c->pc+1] << 8) | c->ram[c->pc]; // Inverted
 	*opcode = (c->ram[c->pc] << 8) | c->ram[c->pc+1]; // Not inverted
 }
 
@@ -93,12 +95,14 @@ t_status run_chip8(chip8_t *c)
 	int is_running = 1;
 	SDL_Event event;
 	uint16_t opcode;
-
+	//int i = 0;
 	while(is_running)
 	{
+		//printf("In main run %d\n",i++);
 		SDL_RenderClear(c->renderer);
 		SDL_RenderPresent(c->renderer);
 		fetch_instruction(c, &opcode);
+		process_opcode(&opcode, c);
 		// Poll event
 		while(SDL_PollEvent(&event))
 		{
