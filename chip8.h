@@ -39,6 +39,7 @@ typedef struct
 	//uint16_t 	opcode;				// Current loaded instruction
 	uint8_t		display[WIDTH][HEIGHT];
 	SDL_Renderer *renderer;
+	SDL_Window *window;
 } chip8_t;
 
 /* Error status enum */
@@ -62,5 +63,7 @@ t_status free_chip8(chip8_t *c);
 t_status load_rom(chip8_t *c, FILE *fp);
 /* Load instruction corresponding to current pc */
 t_status fetch_instruction(chip8_t *c, uint16_t *opcode);
+/* Main run loop */
+t_status run_chip8(chip8_t *c);
 
 #endif

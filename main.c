@@ -31,18 +31,8 @@ int main(int argc, char* argv[])
         // Error handling todo
         exit(EXIT_FAILURE);
     }
-    
-    
-    /* Fetching test */
-    for(chip8->pc; chip8->pc <= MAX_RAM; chip8->pc += 2)
-    {
-        fetch_instruction(chip8, &opcode);
-        //printf("%04x\n", opcode);
-		if(!opcode) break;
-        process_opcode(&opcode, chip8);
-        //printf("\n");
-    }
-	
+
+    run_chip8(chip8);
 	/*	
     chip8->V[0] = 0x3;
     chip8->V[1] = 0x6;
@@ -74,8 +64,8 @@ int main(int argc, char* argv[])
     // // Test setting VF
     // opcode = 0x9020;
     // process_opcode(&opcode, chip8);    
-    
-    free(chip8);
+    //while(1) {}
+    //free(chip8);
     exit(EXIT_SUCCESS);
 }
 

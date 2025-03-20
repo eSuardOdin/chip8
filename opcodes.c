@@ -1,5 +1,7 @@
 #include "opcodes.h"
 #include "chip8.h"
+#include <SDL2/SDL_pixels.h>
+#include <SDL2/SDL_render.h>
 #include <stdint.h>
 
 t_status process_opcode(uint16_t *opcode, chip8_t *c)
@@ -91,6 +93,9 @@ t_status cls_screen(chip8_t *c)
             c->display[x][y] = 0;
         }
     }
+    SDL_SetRenderDrawColor(c->renderer, 0, 0, 0, SDL_ALPHA_OPAQUE); // Setting color to black
+    SDL_RenderClear(c->renderer);
+    SDL_RenderPresent(c->renderer);
     return SUCCESS;
 }
 
@@ -498,7 +503,15 @@ t_status jmp_plus(uint16_t *opcode, chip8_t *c);    // JP V0, addr
 t_status rnd_and(uint16_t *opcode, chip8_t *c);     // RND Vx, byte
 
 /* Nibble D */
-t_status draw(uint16_t *opcode, chip8_t *c);        // DRW Vx, Vy, nibble
+/*
+    Dxyn - DRW Vx, Vy, nibble
+    Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
+    The interpreter reads n bytes from memory, starting at the address stored in I. These bytes are then displayed as sprites on screen at coordinates (Vx, Vy). Sprites are XORed onto the existing screen. If this causes any pixels to be erased, VF is set to 1, otherwise it is set to 0. If the sprite is positioned so part of it is outside the coordinates of the display, it wraps around to the opposite side of the screen. See instruction 8xy3 for more information on XOR, and section 2.4, Display, for more information on the Chip-8 screen and sprites.
+*/
+t_status draw(uint16_t *opcode, chip8_t *c)
+{
+    //SDL_Ren
+}
 
 /* Nibble E */
 t_status process_e(uint16_t *opcode, chip8_t *c);
