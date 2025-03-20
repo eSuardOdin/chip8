@@ -1,10 +1,27 @@
 #include "chip8.h"
+#include <SDL2/SDL_render.h>
+#include <SDL2/SDL_video.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
 /* Inits the struct in a base status */
 t_status init_chip8(chip8_t *c)
 {
+	// Init SDL
+    if(SDL_Init(SDL_INIT_VIDEO))
+        return SDL_INIT_ERROR;
+    // Create Window
+    SDL_Window* window = SDL_CreateWindow("My CHIP-8 Emulator", 
+        SDL_WINDOWPOS_CENTERED, 
+        SDL_WINDOWPOS_CENTERED, 
+        WIDTH * PIX_SIZE, HEIGHT * PIX_SIZE, 0);
+    if(window == NULL)
+        return SDL_WINDOW_CREATION_ERROR;
+	// Create renderer
+	c->renderer = SDL_CreateRenderer(window, -1, 0);
+	if(c->renderer == NULL)
+		return SDL_RENDERER_CREATION_ERROR;
+
 	// TODO : Handle NULL error
 	memset(c, 0, sizeof(chip8_t));
     c->sp = -1;

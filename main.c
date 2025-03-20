@@ -5,7 +5,10 @@
 
 #include "chip8.h"
 #include "opcodes.h"
+#include <SDL2/SDL_video.h>
 #include <stdlib.h>
+#include <SDL2/SDL.h>
+
 int main(int argc, char* argv[])
 {
 	t_status status = 0;
@@ -20,7 +23,7 @@ int main(int argc, char* argv[])
         perror("fopen");
         exit(EXIT_FAILURE);
     }
-    
+    /* Init chip8 struct */
 	init_chip8(chip8);
     /* Load ROM into RAM */
     if((status = load_rom(chip8, fp)))
@@ -29,8 +32,8 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
     
-    /* Fetching test */
     
+    /* Fetching test */
     for(chip8->pc; chip8->pc <= MAX_RAM; chip8->pc += 2)
     {
         fetch_instruction(chip8, &opcode);

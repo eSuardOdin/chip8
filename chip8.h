@@ -9,9 +9,10 @@
 #ifndef CHIP8_H
 #define CHIP8_H
 
+#include <SDL2/SDL_render.h>
 #include <stdint.h>
 #include <stdio.h>
-
+#include <SDL2/SDL.h>
 
 // --- Constants ---
 #define MAX_RAM 	4096
@@ -19,6 +20,7 @@
 #define MAX_STACK 	16
 #define WIDTH		64
 #define HEIGHT		32
+#define PIX_SIZE	10
 
 // --- Structs and types ---
 
@@ -36,10 +38,18 @@ typedef struct
 	uint16_t	keys;				// Keys 			*I'll use a bit per key (16 of them)*
 	//uint16_t 	opcode;				// Current loaded instruction
 	uint8_t		display[WIDTH][HEIGHT];
+	SDL_Renderer *renderer;
 } chip8_t;
 
 /* Error status enum */
-typedef enum {SUCCESS, RAM_OVERFLOW, STACK_OVERFLOW} t_status;
+typedef enum {
+	SUCCESS,
+	RAM_OVERFLOW,
+	STACK_OVERFLOW,
+	SDL_INIT_ERROR,
+	SDL_WINDOW_CREATION_ERROR,
+	SDL_RENDERER_CREATION_ERROR
+	} t_status;
 
 
 // --- Functions ---
