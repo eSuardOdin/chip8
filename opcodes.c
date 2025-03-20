@@ -2,6 +2,7 @@
 #include "chip8.h"
 #include <SDL2/SDL_pixels.h>
 #include <SDL2/SDL_render.h>
+#include <SDL2/SDL_stdinc.h>
 #include <stdint.h>
 
 t_status process_opcode(uint16_t *opcode, chip8_t *c)
@@ -506,11 +507,25 @@ t_status rnd_and(uint16_t *opcode, chip8_t *c);     // RND Vx, byte
 /*
     Dxyn - DRW Vx, Vy, nibble
     Display n-byte sprite starting at memory location I at (Vx, Vy), set VF = collision.
-    The interpreter reads n bytes from memory, starting at the address stored in I. These bytes are then displayed as sprites on screen at coordinates (Vx, Vy). Sprites are XORed onto the existing screen. If this causes any pixels to be erased, VF is set to 1, otherwise it is set to 0. If the sprite is positioned so part of it is outside the coordinates of the display, it wraps around to the opposite side of the screen. See instruction 8xy3 for more information on XOR, and section 2.4, Display, for more information on the Chip-8 screen and sprites.
+    The interpreter reads n bytes from memory, starting at the address stored in I. 
+    These bytes are then displayed as sprites on screen at coordinates (Vx, Vy). Sprites are XORed onto the existing screen. 
+    If this causes any pixels to be erased, VF is set to 1, otherwise it is set to 0. If the sprite is positioned so part of it is outside the coordinates of the display, 
+    it wraps around to the opposite side of the screen. See instruction 8xy3 for more information on XOR, and section 2.4, Display, 
+    for more information on the Chip-8 screen and sprites.
 */
 t_status draw(uint16_t *opcode, chip8_t *c)
 {
-    //SDL_Ren
+    uint8_t n = *opcode & 0xF;
+    uint8_t reg_x, reg_y;
+    reg_x = (*opcode & 0xF00) >> 8;
+    reg_y = (*opcode & 0xF0) >> 4;
+    uint16_t addr = c->I;
+    // Just changing display table and will display
+    for(uint8_t i = 0; i < n; i++)
+    {
+        // On va print un octet
+    }
+    printf("DRW Vx, Vy, nibble : Displaying ");
 }
 
 /* Nibble E */
