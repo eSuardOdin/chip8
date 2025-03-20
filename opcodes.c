@@ -350,8 +350,29 @@ t_status add_reg(uint16_t *opcode, chip8_t *c)
 	printf("Values has been set on V[%0x]: %0x, VF: %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);
 	return SUCCESS;
 }
+
+/*
+    8xy5 - SUB Vx, Vy
+    Set Vx = Vx - Vy, set VF = NOT borrow.
+    If Vx > Vy, then VF is set to 1, otherwise 0. Then Vy is subtracted from Vx, and the results stored in Vx.
+*/
 t_status sub_reg(uint16_t *opcode, chip8_t *c)
 {
+    printf("SUB Vx, Vy : substracting the value of V[%0x] (%0x) from value of V[%0x] (%0x). ", (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4], (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8]);
+
+    // Set VF 
+    c->V[0xF] = c->V[(*opcode & 0xF00) >> 8] > c->V[(*opcode & 0xF0) >> 4] ? 1 : 0;
+    // Substract
+    c->V[(*opcode & 0xF00) >> 8] -= c->V[(*opcode & 0xF0) >> 4];
+
+    if(c->V[0xF])
+    {
+        printf("There was no underflow, V[%0x] is now %0x and V[F] is %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);      
+    }
+    else
+    {
+        printf("UNDERFLOW, V[%0x] is now %0x and V[F] is %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);      
+    }
 	return SUCCESS;
 }
 t_status shr_reg(uint16_t *opcode, chip8_t *c)
