@@ -30,15 +30,15 @@ int main(int argc, char* argv[])
     }
     
     /* Fetching test */
-    /*
+    
     for(chip8->pc; chip8->pc <= MAX_RAM; chip8->pc += 2)
     {
         fetch_instruction(chip8, &opcode);
         //printf("%04x\n", opcode);
 		if(!opcode) break;
         process_opcode(&opcode, chip8);
-        printf("\n");
-    }*/
+        //printf("\n");
+    }
 	
 	/*	
     chip8->V[0] = 0x3;
@@ -62,15 +62,15 @@ int main(int argc, char* argv[])
     process_opcode(&opcode, chip8);
     */
 
-    
-	chip8->V[0xA] = 0xFE;
-    chip8->V[0xD] = 0x03;
-    // Test sub no underflow
-    opcode = 0x8ad5;
-    process_opcode(&opcode, chip8);
-    // Test with underflow
-    opcode = 0x8da5;
-    process_opcode(&opcode, chip8);
+    // chip8->V[0] = 0x72;
+    // chip8->V[1] = 0x72;
+    // chip8->V[2] = 0x2;
+    // // Test without setting VF
+    // opcode = 0x9010;
+    // process_opcode(&opcode, chip8);    
+    // // Test setting VF
+    // opcode = 0x9020;
+    // process_opcode(&opcode, chip8);    
     
     free(chip8);
     exit(EXIT_SUCCESS);

@@ -1,4 +1,6 @@
 #include "opcodes.h"
+#include "chip8.h"
+#include <stdint.h>
 
 t_status process_opcode(uint16_t *opcode, chip8_t *c)
 {
@@ -7,35 +9,37 @@ t_status process_opcode(uint16_t *opcode, chip8_t *c)
 	switch(dig)
 	{
 		case 0x0:
-			process_0(opcode, c);
+			return process_0(opcode, c);
 			break;
 		case 0x1:
-            jmp(opcode, c);
+            return jmp(opcode, c);
             break;
 		case 0x2:
-            call_sub(opcode, c);
+            return call_sub(opcode, c);
 			break;
 		case 0x3:
-			skip_eq_val(opcode, c);
+			return skip_eq_val(opcode, c);
 			break;
 		case 0x4:
-            skip_neq_val(opcode, c);
+            return skip_neq_val(opcode, c);
 			break;
 		case 0x5:
-            skip_eq_reg(opcode, c);
+            return skip_eq_reg(opcode, c);
 			break;
 		case 0x6:
-            load_val(opcode, c);
+            return load_val(opcode, c);
 			break;
 		case 0x7:
-			add_val(opcode, c);
+			return add_val(opcode, c);
 			break;
 		case 0x8:
-			process_8(opcode, c);
+			return process_8(opcode, c);
 			break;
 		case 0x9:
+            return skip_neq_reg(opcode, c);
 			break;
 		case 0xa:
+            return load_i(opcode, c);
 			break;
 		case 0xb:
 			break;
@@ -79,7 +83,14 @@ t_status process_0(uint16_t *opcode, chip8_t *c)
 */
 t_status cls_screen(chip8_t *c)
 {
-    printf("CLS : Please implement cls_screen().\n");
+    printf("CLS : Clearing screen.\n");
+    for(int x = 0; x < WIDTH; x++)
+    {
+        for(int y = 0; y < HEIGHT; y++)
+        {
+            c->display[x][y] = 0;
+        }
+    }
     return SUCCESS;
 }
 
@@ -229,6 +240,7 @@ t_status skip_eq_reg(uint16_t *opcode, chip8_t *c)
 t_status load_val(uint16_t *opcode, chip8_t *c)
 {
     c->V[(*opcode & 0x0F00) >> 8] = *opcode & 0x00FF;
+    printf("LD Vx, byte : Loaded value %0x in V[%0x]\n", c->V[(*opcode & 0x0F00) >> 8], (*opcode & 0x0F00) >> 8);
     return SUCCESS;
 }
 
@@ -267,13 +279,13 @@ t_status process_8(uint16_t *opcode, chip8_t *c)
 			return add_reg(opcode,c);
 			break;
 		case 0x5:
-			return sub_reg(opcode,c);
+			return sub_reg_xy(opcode,c);
 			break;
 		case 0x6:
 			return shr_reg(opcode,c);
 			break;
 		case 0x7:
-			return sub_reg_nb(opcode,c);
+			return sub_reg_yx(opcode,c);
 			break;
 		case 0xe:
 			return shl_reg(opcode,c);
@@ -356,7 +368,7 @@ t_status add_reg(uint16_t *opcode, chip8_t *c)
     Set Vx = Vx - Vy, set VF = NOT borrow.
     If Vx > Vy, then VF is set to 1, otherwise 0. Then Vy is subtracted from Vx, and the results stored in Vx.
 */
-t_status sub_reg(uint16_t *opcode, chip8_t *c)
+t_status sub_reg_xy(uint16_t *opcode, chip8_t *c)
 {
     printf("SUB Vx, Vy : substracting the value of V[%0x] (%0x) from value of V[%0x] (%0x). ", (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4], (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8]);
 
@@ -375,24 +387,109 @@ t_status sub_reg(uint16_t *opcode, chip8_t *c)
     }
 	return SUCCESS;
 }
+
+/*
+    DISCLAIMER : I'm ignoring Vy as intended in original chip-8 (See SCHIP for use of Vy)
+    8xy6 - SHR Vx {, Vy}
+    Set Vx = Vx SHR 1.
+    If the least-significant bit of Vx is 1, then VF is set to 1, otherwise 0. Then Vx is divided by 2.
+*/
 t_status shr_reg(uint16_t *opcode, chip8_t *c)
 {
+    printf("SHR Vx {, Vy} : Dividing V[%0x] (%0x) by 2. ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8]);
+    
+    // Setting VF
+    c->V[0xF] = c->V[(*opcode & 0xF00) >> 8] & 0x1;
+    // Dividing by 2
+    c->V[(*opcode & 0xF00) >> 8] = c->V[(*opcode & 0xF00) >> 8] >> 1;
+    
+    printf("V[%0x] is now %0x. VF has been set on %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);
 	return SUCCESS;
 }
-t_status sub_reg_nb(uint16_t *opcode, chip8_t *c)
+
+
+/*
+    8xy7 - SUBN Vx, Vy
+    Set Vx = Vy - Vx, set VF = NOT borrow.
+    If Vy > Vx, then VF is set to 1, otherwise 0. Then Vx is subtracted from Vy, and the results stored in Vx.
+*/
+t_status sub_reg_yx(uint16_t *opcode, chip8_t *c)
 {
+    printf("SUBN Vx, Vy : substracting the value of V[%0x] (%0x) from value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
+
+    // Set VF 
+    c->V[0xF] = c->V[(*opcode & 0xF0) >> 4] > c->V[(*opcode & 0xF00) >> 8] ? 1 : 0;
+    // Substract
+    c->V[(*opcode & 0xF00) >> 8] = c->V[(*opcode & 0xF0) >> 4] - c->V[(*opcode & 0xF00) >> 8];
+
+    if(c->V[0xF])
+    {
+        printf("There was no underflow, V[%0x] is now %0x and V[F] is %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);      
+    }
+    else
+    {
+        printf("UNDERFLOW, V[%0x] is now %0x and V[F] is %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);      
+    }
 	return SUCCESS;
 }
+
+/*
+    DISCLAIMER : I'm ignoring Vy as intended in original chip-8 (See SCHIP for use of Vy)
+    8xyE - SHL Vx {, Vy}
+    Set Vx = Vx SHL 1.
+    If the most-significant bit of Vx is 1, then VF is set to 1, otherwise to 0. Then Vx is multiplied by 2.
+*/
 t_status shl_reg(uint16_t *opcode, chip8_t *c)
 {
+    printf("SHL Vx {, Vy} : Multiplying V[%0x] (%0x) by 2. ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8]);
+    
+    // Setting VF
+    c->V[0xF] = (c->V[(*opcode & 0xF00) >> 8] & 128) ? 1 : 0;
+    // Dividing by 2
+    c->V[(*opcode & 0xF00) >> 8] = c->V[(*opcode & 0xF00) >> 8] << 1;
+    
+    printf("V[%0x] is now %0x. VF has been set on %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);
 	return SUCCESS;
 }
 
 /* Nibble 9 */
-t_status skip_neq_reg(uint16_t *opcode, chip8_t *c);// SNE Vx, Vy
+
+/*
+    9xy0 - SNE Vx, Vy
+    Skip next instruction if Vx != Vy.
+    The values of Vx and Vy are compared, and if they are not equal, the program counter is increased by 2.
+*/
+t_status skip_neq_reg(uint16_t *opcode, chip8_t *c)
+{
+    uint8_t reg_x, reg_y;
+    reg_x = (*opcode & 0xF00) >> 8;
+    reg_y = (*opcode & 0xF0) >> 4;
+    printf("SNE Vx, Vy : testing register V%0x value (%0x) against register V%0x value (%0x) ", reg_x, c->V[reg_x], reg_y, c->V[reg_y]);
+    if(c->V[(*opcode & 0xF00) >> 8] != c->V[(*opcode & 0xF0) >> 4])
+    {
+        printf("Values are not equal, skipping next instruction.\n");
+        c->pc += 2;
+    }
+    else
+    {
+        printf("Values are equal, no skip.\n");
+    }
+    return SUCCESS;
+}
 
 /* Nibble A */
-t_status load_i(uint16_t *opcode, chip8_t *c);      // LD I, addr
+/*
+    Annn - LD I, addr
+    Set I = nnn.
+    The value of register I is set to nnn.
+*/
+t_status load_i(uint16_t *opcode, chip8_t *c)
+{
+    printf("LD I, addr : Setting reg I to ");
+    c->I = *opcode & 0XFFF;
+    printf(" %0x.\n", c->I);
+    return SUCCESS;
+}
 
 /* Nibble B */
 t_status jmp_plus(uint16_t *opcode, chip8_t *c);    // JP V0, addr

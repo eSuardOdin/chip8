@@ -47,7 +47,7 @@ t_status load_rom(chip8_t *c, FILE *fp)
 */
 t_status fetch_instruction(chip8_t *c, uint16_t *opcode)
 {
-//	*opcode = (c->ram[c->pc+1] << 8) | c->ram[c->pc];
-	*opcode = (c->ram[c->pc] << 8) | c->ram[c->pc+1];
+	// *opcode = (c->ram[c->pc+1] << 8) | c->ram[c->pc]; // Inverted
+	*opcode = (c->ram[c->pc] << 8) | c->ram[c->pc+1]; // Not inverted
 }
 

@@ -37,9 +37,9 @@ t_status or_reg(uint16_t *opcode, chip8_t *c);      // OR Vx, Vy
 t_status and_reg(uint16_t *opcode, chip8_t *c);     // AND Vx, Vy
 t_status xor_reg(uint16_t *opcode, chip8_t *c);     // XOR Vx, Vy
 t_status add_reg(uint16_t *opcode, chip8_t *c);     // ADD Vx, Vy
-t_status sub_reg(uint16_t *opcode, chip8_t *c);     // SUB Vx, Vy
+t_status sub_reg_xy(uint16_t *opcode, chip8_t *c);     // SUB Vx, Vy
 t_status shr_reg(uint16_t *opcode, chip8_t *c);     // SHR Vx {, Vy}
-t_status sub_reg_nb(uint16_t *opcode, chip8_t *c);  // SUBN Vx, Vy
+t_status sub_reg_yx(uint16_t *opcode, chip8_t *c);  // SUBN Vx, Vy
 t_status shl_reg(uint16_t *opcode, chip8_t *c);     // SHL Vx {, Vy}
 
 /* Nibble 9 */
