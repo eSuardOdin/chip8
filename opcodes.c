@@ -4,6 +4,7 @@
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_stdinc.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 t_status process_opcode(uint16_t *opcode, chip8_t *c)
 {
@@ -45,8 +46,10 @@ t_status process_opcode(uint16_t *opcode, chip8_t *c)
             return load_i(opcode, c);
 			break;
 		case 0xb:
+            return jmp_plus(opcode, c);
 			break;
 		case 0xc:
+            return rnd_and(opcode, c);
 			break;
 		case 0xd:
             return draw(opcode, c);
@@ -268,7 +271,7 @@ t_status add_val(uint16_t *opcode, chip8_t *c)
 /* --- Nibble 8 --- */
 t_status process_8(uint16_t *opcode, chip8_t *c)
 {
-	switch(*opcode & 0xF)
+	switch(*opcode & 0x000F)
 	{
 		case 0x0:
 			return load_reg(opcode,c);
@@ -499,10 +502,35 @@ t_status load_i(uint16_t *opcode, chip8_t *c)
 }
 
 /* Nibble B */
-t_status jmp_plus(uint16_t *opcode, chip8_t *c);    // JP V0, addr
+/*
+    Bnnn - JP V0, addr
+    Jump to location nnn + V0.
+    The program counter is set to nnn plus the value of V0.
+*/
+t_status jmp_plus(uint16_t *opcode, chip8_t *c)
+{
+    printf("JP V0, addr : Setting program counter to V0 (%0x) + %0x -> ", c->V[0x0], *opcode & 0xFFF);
+    c->pc = c->V[0x0] + (*opcode & 0xFFF);
+    printf("%0x\n", c->pc);
+    return SUCCESS;
+}
 
 /* Nibble C */
-t_status rnd_and(uint16_t *opcode, chip8_t *c);     // RND Vx, byte
+/*
+    Cxkk - RND Vx, byte
+    Set Vx = random byte AND kk.
+    The interpreter generates a random number from 0 to 255, which is then ANDed with the value kk.
+    The results are stored in Vx.
+    See instruction 8xy2 for more information on AND.
+*/
+t_status rnd_and(uint16_t *opcode, chip8_t *c)
+{
+    uint8_t reg_x = (*opcode & 0xF00) >> 8;
+    uint8_t rnd = rand() % 256;
+    c->V[reg_x] = rnd & (*opcode & 0xFF);
+    printf("RND Vx, byte : Generating a random number : %0x - ANDing it with %0x. Result : %0x.\n", rnd, *opcode & 0xFF, c->V[reg_x]);
+    return SUCCESS;
+}
 
 /* Nibble D */
 /*

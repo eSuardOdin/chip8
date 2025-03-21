@@ -32,43 +32,11 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
-    run_chip8(chip8);
-    
-    #pragma region tests
-	/*	
-    chip8->V[0] = 0x3;
-    chip8->V[1] = 0x6;
-	opcode = 0x8011;
-	process_opcode(&opcode, chip8);
-	opcode = 0x8012;
-	process_opcode(&opcode, chip8);
-	opcode = 0x8013;
-	process_opcode(&opcode, chip8);
-	*/
-    /*
-	chip8->V[0] = 0xF0;
-    chip8->V[1] = 0x6;
-	chip8->V[2] = 0xEE;
-	// Test adding with no overflow
-	opcode = 0x8014;
-    process_opcode(&opcode, chip8);
-	// Test with overflow
-	opcode = 0x8024;
-    process_opcode(&opcode, chip8);
-    */
 
-    // chip8->V[0] = 0x72;
-    // chip8->V[1] = 0x72;
-    // chip8->V[2] = 0x2;
-    // // Test without setting VF
-    // opcode = 0x9010;
-    // process_opcode(&opcode, chip8);    
-    // // Test setting VF
-    // opcode = 0x9020;
-    // process_opcode(&opcode, chip8);    
-    //while(1) {}
-    //free(chip8);
-    #pragma endregion
+    opcode = 0xC122;
+    process_opcode(&opcode, chip8); 
+    //run_chip8(chip8);
+    
     exit(EXIT_SUCCESS);
 }
 

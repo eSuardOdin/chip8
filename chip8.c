@@ -8,9 +8,14 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <time.h>
 /* Inits the struct in a base status */
 t_status init_chip8(chip8_t *c)
 {
+
+	// TODO : Find a better place to init rnd, maybe.
+	// Init RND
+	srand(time(NULL));
 	// TODO : Handle NULL error
 	memset(c, 0, sizeof(chip8_t));
 	// Init SDL
