@@ -55,8 +55,10 @@ t_status process_opcode(uint16_t *opcode, chip8_t *c)
             return draw(opcode, c);
 			break;
 		case 0xe:
+            return process_e(opcode, c);
 			break;
 		case 0xf:
+            //return process_f(opcode, c);
 			break;
 
 	}
@@ -552,17 +554,19 @@ t_status draw(uint16_t *opcode, chip8_t *c)
     printf("##############\nEntering draw func with values :\n - Vx = %d\n - Vy = %d\n - I = %d\n", reg_x, reg_y, c->I);
     // Reset flag register to check for collision (XOR)
     c->V[0xF] = 0;
-    // Just changing display table and will display
+
+    // Iterate through all lines of sprite (n)
     for(uint8_t y = 0; y < n; y++)
     {
-        // Getting the "line" of sprite
+        // Getting the line
         uint8_t sprite = c->ram[addr + y];
         printf("Next line to print : %0x\n", sprite);
-        for(uint8_t x = 0; x <= 8; x++)
+        // Iterate through pixels
+        for(uint8_t x = 0; x < 8; x++)
         {
             // Masking the current observed pixel
             uint8_t px = (sprite >> (7 - x)) & 1;
-            // Checking for collision (refactor later for a true XOR ?)
+            // Checking for collision (refactor later for a true XOR ?) and put display value according to it
             if(px & c->display[reg_x + x][reg_y + y])
             {
                 c->V[0xF] = 1;
@@ -572,25 +576,28 @@ t_status draw(uint16_t *opcode, chip8_t *c)
             {
                 c->display[reg_x + x][reg_y + y] = px;
             }
-            // Putting px value in display
-            // Print on screen
-            if(px)
-            {
-                SDL_SetRenderDrawColor(c->renderer, 255, 255, 255, 255);
+        }
+    }
+
+
+    // Print on screen - First clearing
+    SDL_SetRenderDrawColor(c->renderer, 0, 0, 0, 255);
+    SDL_RenderClear(c->renderer);
+    // Then printing 1's
+    SDL_SetRenderDrawColor(c->renderer, 255, 255, 255, 255);
+    for(int y = 0; y < HEIGHT; y++) {
+        for(int x = 0; x < WIDTH; x++) {
+            if(c->display[x][y]) {
                 SDL_Rect rect;
-                rect.x = (reg_x + x) * PIX_SIZE;
-                rect.y = (reg_y + y) * PIX_SIZE;
+                rect.x = x * PIX_SIZE;
+                rect.y = y * PIX_SIZE;
                 rect.w = PIX_SIZE;
                 rect.h = PIX_SIZE;
-                //SDL_RenderDrawRect(c->renderer, &rect);
                 SDL_RenderFillRect(c->renderer, &rect);
-            }
-            else
-            {
-                //SDL_SetRenderDrawColor(c->renderer, 0, 0, 0, 255);
             }
         }
     }
+
     SDL_RenderPresent(c->renderer);
     printf("DRW Vx, Vy, nibble : Displaying \n");
     for(int y = 0; y < HEIGHT; y++)
@@ -611,9 +618,49 @@ t_status draw(uint16_t *opcode, chip8_t *c)
 }
 
 /* Nibble E */
-t_status process_e(uint16_t *opcode, chip8_t *c);
-t_status skip_prsd(uint16_t *opcode, chip8_t *c);   // SKP Vx
-t_status skip_nprsd(uint16_t *opcode, chip8_t *c);  // SKNP Vx
+t_status process_e(uint16_t *opcode, chip8_t *c)
+{
+    switch(*opcode & 0xFF)
+    {
+        case 0x9e:
+            return skip_prsd(opcode, c);
+        case 0xa1:
+            return skip_nprsd(opcode, c);
+        default:
+    }
+}
+
+/*
+    Ex9E - SKP Vx
+    Skip next instruction if key with the value of Vx is pressed.
+    Checks the keyboard, and if the key corresponding to the value of Vx is currently in the down position, PC is increased by 2.
+*/
+t_status skip_prsd(uint16_t *opcode, chip8_t *c)
+{
+    uint8_t reg_x = (*opcode & 0xF00) >> 8;
+    printf("SKP Vx : Checking if V[%0x] (%0x) is pressed (against current pressed keys -> %0x). ", reg_x, c->V[reg_x], c->keys);
+    if(c->V[reg_x] & c->keys)
+    {
+        printf("Key pressed, skipping next instruction.\n");
+        c->pc += 2;
+    }
+    else
+    {
+        printf("Key not pressed.\n");
+    }
+    return SUCCESS;
+}
+
+/*
+    ExA1 - SKNP Vx
+    Skip next instruction if key with the value of Vx is not pressed.
+    Checks the keyboard, and if the key corresponding to the value of Vx is currently in the up position, PC is increased by 2.
+*/
+t_status skip_nprsd(uint16_t *opcode, chip8_t *c)
+{
+
+    return SUCCESS;
+}
 
 /* Nibble F */
 t_status process_f(uint16_t *opcode, chip8_t *c);

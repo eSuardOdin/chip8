@@ -33,9 +33,8 @@ int main(int argc, char* argv[])
     }
 
 
-    opcode = 0xC122;
-    process_opcode(&opcode, chip8); 
-    //run_chip8(chip8);
+    
+    run_chip8(chip8);
     
     exit(EXIT_SUCCESS);
 }

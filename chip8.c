@@ -100,12 +100,10 @@ t_status run_chip8(chip8_t *c)
 	int is_running = 1;
 	SDL_Event event;
 	uint16_t opcode;
-	//int i = 0;
+	SDL_RenderClear(c->renderer);
+	SDL_RenderPresent(c->renderer);
 	while(is_running)
 	{
-		//printf("In main run %d\n",i++);
-		SDL_RenderClear(c->renderer);
-		SDL_RenderPresent(c->renderer);
 		fetch_instruction(c, &opcode);
 		process_opcode(&opcode, c);
 		// Poll event
