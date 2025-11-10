@@ -1,0 +1,9 @@
+add va32
+cls v1
+
+
+
+
+and vf
+   or     v0
+xor v5
