@@ -1,9 +1,6 @@
-add va32
-cls v1
+add v1
 
-
-
-
-and vf
-   or     v0
-xor v5
+cls    v0   v3
+ and   v0 va       vf   v3   v2
+     or
+xor

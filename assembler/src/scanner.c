@@ -1,4 +1,5 @@
 #include "../inc/scanner.h"
+#include <stdio.h>
 
 Scanner scanner;
 
@@ -53,8 +54,13 @@ static bool is_numeric(char c) {
     return c >= '0' && c <= '9';
 }
 
+static bool is_alphanumeric(char c) {
+    return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
+}
 
-
+static bool is_invalid_char(char c) {
+    return !(c == ' ' || c == '\n' || c == '\0' || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9'));
+}
 
 static void skip_whitespace() {
     while(1) {
@@ -65,10 +71,10 @@ static void skip_whitespace() {
             case '\r':
                 advance();
                 break;
-            case '\n':
-                scanner.line++;
-                advance();
-                break;
+            // case '\n':
+            //     scanner.line++;
+            //     advance();
+            //     break;
             // Check if comment
             case '#':
                 while(peek() != '\n' && !is_at_end()) advance();
@@ -153,21 +159,28 @@ static Opcode get_opcode() {
 }
 
 
+// static int number(bool is_hexa) {
+//     if(is_hexa) return 0;
+//     return -1;
+// }
+
+
 
 static Argument get_argument() {
+    // printf("Entering get_argument with\n   start: '%c'\n   current:'%c'\n", *scanner.start, peek());
     Argument arg;
     arg.type = ARG_ERROR;
-    if(is_alpha(peek())) {
+    if(is_alpha(*scanner.start)) {
         switch(*scanner.start) {
             case 'v': 
-                if(is_numeric(peekNext())) {
+                if(is_numeric(scanner.start[1])) {
                     arg.type = ARG_REGISTER;
-                    arg.as.reg = (Register)(peekNext() - '0');
+                    arg.as.reg = (Register)(scanner.start[1] - '0');
                     return arg;
                 }
-                if(is_alpha(peekNext()) && peekNext() <= 'f') {
+                else if(is_alpha(scanner.start[1]) && scanner.start[1] <= 'f') {
                     arg.type = ARG_REGISTER;
-                    arg.as.reg = (Register)(peekNext() - ('a'-10));
+                    arg.as.reg = (Register)(scanner.start[1] - ('a'-10));
                     return arg;
                 }
                 
@@ -222,7 +235,72 @@ static void read_line() {
 }
 
 
+static void process_line() {
+    printf("[DEBUG] process_line() : line %d\n", scanner.line);
+    // Skip trailing whitespace if any
+    skip_whitespace();
+    // Return if empty line
+    if(peek() == '\n' || is_at_end()) {
+        if(*scanner.current == '\n') {
+            scanner.line++;
+            advance();
+        }
+        return;
+    }
     
+    scanner.start = scanner.current;
+    // Opcode processing
+    while(is_alpha(peek())) advance();
+    if(is_invalid_char(peek())) {
+        char err_str[64];
+        sprintf(err_str, "The character '%c' is not valid.", *scanner.current);
+        error("SCANNER", scanner.line, err_str);
+    }
+
+    Opcode op = get_opcode();
+    if(op == OP_ERROR) error("SCANNER", scanner.line, "The opcode was not valid.");
+
+    printf("[OPCODE] %d\n", op);
+    // Instruction instance
+    Instruction instruction;
+    init_instruction(&instruction);
+    instruction.opcode = op;
+
+    // Arguments or newline
+    while(1) {
+        skip_whitespace();
+        if(peek() == '\n' || is_at_end()) {
+            if(*scanner.current == '\n') {
+                scanner.line++;
+                advance();
+            }
+            return;
+        }
+
+
+        scanner.start = scanner.current;
+        while(is_alphanumeric(peek())) advance();
+        // Check if invalid char
+        if(is_invalid_char(peek())) {
+            char err_str[64];
+            sprintf(err_str, "The character '%c' is not valid.", *scanner.current);
+            error("SCANNER", scanner.line, err_str);
+        }
+        Argument arg = get_argument();
+        if(arg.type == ARG_ERROR){
+            char err_str[64];
+            sprintf(err_str, "The argument n°%d was not valid.", instruction.args_count + 1);
+            error("SCANNER", scanner.line, err_str);
+        }
+        add_argument(&instruction, &arg);
+        printf("   [ARG]: Added argument type %d with value %d\n", (int)arg.type, (int)arg.as.reg);
+
+    }
+    if(*scanner.current == '\n') {
+        scanner.line++;
+        advance();
+    }
+}
 
 
 
@@ -243,12 +321,11 @@ void init_scanner(const char* src) {
 
 
 
-
-
 void assemble(const char* src) {
     init_scanner(src);
     while(!is_at_end()) {
-        read_line();
+        // read_line();
+        process_line();
     }
 }
 

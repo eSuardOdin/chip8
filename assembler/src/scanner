@@ -1,0 +1,17 @@
+add v3 vb
+cls
+
+ld v0 0x34
+
+----------------------------
+chaque ligne doit contenir soit une instruction ou être une ligne vide.
+
+pour chaque ligne :
+skip_whitespace()
+if(peek() == '\n' || EOF) -> ligne vide, return
+--- process de l'opcode ---
+tant que is_alpha(peek()) -> advance()
+check_opcode()
+--- process des args ---
+tant que peek() != \n || EOF
+    skip_whitespace()

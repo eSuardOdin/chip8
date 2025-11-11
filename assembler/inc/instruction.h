@@ -94,7 +94,12 @@ typedef enum {
 typedef struct {
     Opcode opcode;
     Argument* args;
-    uint8_t args_count;
+    int args_count;
+    int args_capacity;
 } Instruction;
+
+
+void add_argument(Instruction* inst, Argument* arg);
+void init_instruction(Instruction* inst);
 
 #endif
