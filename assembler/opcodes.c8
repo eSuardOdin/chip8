@@ -1,4 +1,4 @@
-add v1
+add v1 i
 
 cls    v0   v3
  and   v0 va       vf   v3   v2

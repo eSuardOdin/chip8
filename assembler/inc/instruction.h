@@ -8,23 +8,23 @@
  * 
  */
 typedef enum {
-    V0,
-    V1,
-    V2,
-    V3,
-    V4,
-    V5,
-    V6,
-    V7,
-    V8,
-    V9,
-    VA,
-    VB,
-    VC,
-    VD,
-    VE,
-    VF,
-    I
+    REG_V0,
+    REG_V1,
+    REG_V2,
+    REG_V3,
+    REG_V4,
+    REG_V5,
+    REG_V6,
+    REG_V7,
+    REG_V8,
+    REG_V9,
+    REG_VA,
+    REG_VB,
+    REG_VC,
+    REG_VD,
+    REG_VE,
+    REG_VF,
+    REG_I
 } Register;
 
 /**

@@ -1,5 +1,8 @@
 #include "../inc/scanner.h"
+#include <limits.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 Scanner scanner;
 
@@ -158,33 +161,111 @@ static Opcode get_opcode() {
     return OP_ERROR;
 }
 
+/**
+ * @brief Returns a number argument. If an argument type is ARG_NIBBLE, it can
+ * be used for a ARG_BYTE or ARG_ADDRESS but an ARG_BYTE cannot be used for an
+ * ARG_NIBBLE
+ * 
+ * @return Argument 
+ */
+static void process_number(Argument* arg) {
+    char nbstr[((int)(scanner.current - scanner.start)) + 1];
+    nbstr[(int)(scanner.current - scanner.start)] = '\0';
+    char* endptr;
+    strncpy(nbstr, scanner.start, (int)(scanner.current - scanner.start));
 
-// static int number(bool is_hexa) {
-//     if(is_hexa) return 0;
-//     return -1;
-// }
+    long nb = strtol(nbstr, &endptr, 0);
+    
+    if(*endptr != '\0') {
+        printf("--> '%c'\n", *endptr);
+        if(((int)(scanner.current - scanner.start) < 32)) {
+                char arg_err[((int)(scanner.current - scanner.start)) + 1];
+                strncpy(arg_err, scanner.start, (int)(scanner.current - scanner.start));
+                arg_err[(int)(scanner.current - scanner.start)] = '\0';
+                char err_msg[64];
+                sprintf(err_msg, "The argument '%s' is not a valid number.", arg_err);
+                error("SCANNER", scanner.line, err_msg);
+            } else {
+                char err_msg[64];
+                sprintf(err_msg, "The argument n°%d is not a valid number.", scanner.instructions->args_count);
+                error("SCANNER", scanner.line, err_msg);
+            }
+    }
 
+    // Assign type and value
+    if(nb <= 0xF) {
+        arg->type = ARG_NIBBLE;
+        arg->as.nibble = (uint8_t)nb;
+    } else if(nb <= 0xFF) {
+        arg->type = ARG_BYTE;
+        arg->as.byte = (uint8_t)nb;
+    } else if(nb <= 0xFFF) {
+        arg->type = ARG_ADDRESS;
+        arg->as.address = (uint16_t)nb;
+    } else {
+        char err_msg[64];
+        sprintf(err_msg, "The argument '%ld' is too wide for an argument.", nb);
+        error("SCANNER", scanner.line, err_msg);
+    }
+}
 
+static void process_register(Argument* arg) {
+    arg->type = ARG_REGISTER;
+
+    // Check if 'v' register
+    if(*scanner.start == 'v') {
+        // Check for invalid register argument
+        if((int)(scanner.current - scanner.start) > 2) {
+            
+            if(((int)(scanner.current - scanner.start) < 32)) {
+                char arg_err[((int)(scanner.current - scanner.start)) + 1];
+                strncpy(arg_err, scanner.start, (int)(scanner.current - scanner.start));
+                arg_err[(int)(scanner.current - scanner.start)] = '\0';
+                char err_msg[64];
+                sprintf(err_msg, "The argument '%s' is not valid.", arg_err);
+                error("SCANNER", scanner.line, err_msg);
+            } else {
+                char err_msg[64];
+                sprintf(err_msg, "The argument n°%d is not valid.", scanner.instructions->args_count);
+                error("SCANNER", scanner.line, err_msg);
+            }
+        }
+        if(is_numeric(scanner.start[1])) {
+                arg->as.reg = (Register)(scanner.start[1] - '0');
+            }
+        else if(is_alpha(scanner.start[1]) && scanner.start[1] <= 'f') {
+            arg->as.reg = (Register)(scanner.start[1] - ('a'-10));
+        }
+                
+        
+    } else if(*scanner.start == 'i') {
+        if((int)(scanner.current - scanner.start) != 1) {
+            
+            if(((int)(scanner.current - scanner.start) < 55)) {
+                char arg_err[((int)(scanner.current - scanner.start)) + 1];
+                strncpy(arg_err, scanner.start, (int)(scanner.current - scanner.start));
+                arg_err[(int)(scanner.current - scanner.start)] = '\0';
+                char err_msg[64];
+                sprintf(err_msg, "The argument '%s' is not valid.", arg_err);
+                error("SCANNER", scanner.line, err_msg);
+            } else {
+                char err_msg[64];
+                sprintf(err_msg, "The argument n°%d is not valid.", scanner.instructions->args_count);
+                error("SCANNER", scanner.line, err_msg);
+            }
+        }
+        arg->as.reg = REG_I;
+    }
+}
 
 static Argument get_argument() {
     // printf("Entering get_argument with\n   start: '%c'\n   current:'%c'\n", *scanner.start, peek());
     Argument arg;
     arg.type = ARG_ERROR;
     if(is_alpha(*scanner.start)) {
-        switch(*scanner.start) {
-            case 'v': 
-                if(is_numeric(scanner.start[1])) {
-                    arg.type = ARG_REGISTER;
-                    arg.as.reg = (Register)(scanner.start[1] - '0');
-                    return arg;
-                }
-                else if(is_alpha(scanner.start[1]) && scanner.start[1] <= 'f') {
-                    arg.type = ARG_REGISTER;
-                    arg.as.reg = (Register)(scanner.start[1] - ('a'-10));
-                    return arg;
-                }
-                
-        }
+        process_register(&arg);
+    } else if (is_numeric(*scanner.start)) {
+        process_number(&arg);
     }
     return arg;
 }
@@ -293,8 +374,23 @@ static void process_line() {
             error("SCANNER", scanner.line, err_str);
         }
         add_argument(&instruction, &arg);
-        printf("   [ARG]: Added argument type %d with value %d\n", (int)arg.type, (int)arg.as.reg);
 
+        // Debug
+        switch(arg.type) {
+            case ARG_REGISTER:
+                printf("   [ARG]: Added argument type ARG_REGISTER with value %d\n", (int)arg.as.reg);
+                break;
+            case ARG_ADDRESS:
+                printf("   [ARG]: Added argument type ARG_ADDRESS with value %d\n", (int)arg.as.address);
+                break;
+            case ARG_BYTE:
+                printf("   [ARG]: Added argument type ARG_BYTE with value %d\n", (int)arg.as.nibble);
+                break;
+            case ARG_NIBBLE:
+                printf("   [ARG]: Added argument type ARG_NIBBLE with value %d\n", (int)arg.as.nibble);
+                break;
+            default:    return;
+        }
     }
     if(*scanner.current == '\n') {
         scanner.line++;
