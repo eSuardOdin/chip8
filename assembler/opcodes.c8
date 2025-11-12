@@ -3,15 +3,15 @@
 
 # Test des instructions de base
 cls
-high
-low
-exit
+#high   # Chip48 
+#low    # Chip48
+#exit   # Chip48
 
 # Test des instructions avec registres
 ld v0 0x05
 ld v1 0XFF
 ld va 15
-ld vf 0
+ld vf 0 [i]
 ld i 0x200
 
 # Test des opérations arithmétiques
@@ -53,9 +53,9 @@ rnd v0 0xFF
 rnd v5 0x0F
 
 # Test des instructions de scroll (SCHIP)
-scr
-scl
-scd 4
+# scr
+# scl
+# scd 4
 
 # Test avec commentaires inline
 ld v0 0x10  # Charge 16 dans v0
@@ -101,5 +101,5 @@ add v3 0xFF    # hexadécimal
 
 
 # Test de fin
-sys 0x000
-exit
+sys 0x000 dt st dt i k   [i] k f b
+# exit

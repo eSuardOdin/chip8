@@ -228,8 +228,28 @@ static void process_register(Argument* arg) {
         }
                 
         
-    } else if(*scanner.start == 'i') {
-        printf("*** [DBG] i reg detected. ***\n");
+    }
+    // Check if 'k' (key input)
+    else if(*scanner.start == 'k') {
+        if((int)(scanner.current - scanner.start) != 1) {
+            
+            if(((int)(scanner.current - scanner.start) < 55)) {
+                char arg_err[((int)(scanner.current - scanner.start)) + 1];
+                strncpy(arg_err, scanner.start, (int)(scanner.current - scanner.start));
+                arg_err[(int)(scanner.current - scanner.start)] = '\0';
+                char err_msg[64];
+                sprintf(err_msg, "The argument '%s' is not valid.", arg_err);
+                error("SCANNER", scanner.line, err_msg);
+            } else {
+                char err_msg[64];
+                sprintf(err_msg, "The argument n°%d is not valid.", scanner.instructions->args_count);
+                error("SCANNER", scanner.line, err_msg);
+            }
+        }
+        arg->type = ARG_KEY;
+    }
+    // Check if 'i' register
+    else if(*scanner.start == 'i') {
         if((int)(scanner.current - scanner.start) != 1) {
             
             if(((int)(scanner.current - scanner.start) < 55)) {
@@ -248,13 +268,96 @@ static void process_register(Argument* arg) {
         arg->type = ARG_I_REGISTER;
         arg->as.reg = REG_I;
     }
+    else if(*scanner.start == 'f') {
+        if((int)(scanner.current - scanner.start) != 1) {
+            
+            if(((int)(scanner.current - scanner.start) < 55)) {
+                char arg_err[((int)(scanner.current - scanner.start)) + 1];
+                strncpy(arg_err, scanner.start, (int)(scanner.current - scanner.start));
+                arg_err[(int)(scanner.current - scanner.start)] = '\0';
+                char err_msg[64];
+                sprintf(err_msg, "The argument '%s' is not valid.", arg_err);
+                error("SCANNER", scanner.line, err_msg);
+            } else {
+                char err_msg[64];
+                sprintf(err_msg, "The argument n°%d is not valid.", scanner.instructions->args_count);
+                error("SCANNER", scanner.line, err_msg);
+            }
+        }
+        arg->type = ARG_I_REGISTER;
+        arg->as.reg = REG_F;
+    }
+    else if(*scanner.start == 'b') {
+        if((int)(scanner.current - scanner.start) != 1) {
+            
+            if(((int)(scanner.current - scanner.start) < 55)) {
+                char arg_err[((int)(scanner.current - scanner.start)) + 1];
+                strncpy(arg_err, scanner.start, (int)(scanner.current - scanner.start));
+                arg_err[(int)(scanner.current - scanner.start)] = '\0';
+                char err_msg[64];
+                sprintf(err_msg, "The argument '%s' is not valid.", arg_err);
+                error("SCANNER", scanner.line, err_msg);
+            } else {
+                char err_msg[64];
+                sprintf(err_msg, "The argument n°%d is not valid.", scanner.instructions->args_count);
+                error("SCANNER", scanner.line, err_msg);
+            }
+        }
+        arg->type = ARG_I_REGISTER;
+        arg->as.reg = REG_B;
+    }
+    // Check if '[i]' register
+    else if(*scanner.start == '[') {
+        if((int)(scanner.current - scanner.start) != 3) {
+            
+            if(((int)(scanner.current - scanner.start) < 55)) {
+                char arg_err[((int)(scanner.current - scanner.start)) + 1];
+                strncpy(arg_err, scanner.start, (int)(scanner.current - scanner.start));
+                arg_err[(int)(scanner.current - scanner.start)] = '\0';
+                char err_msg[64];
+                sprintf(err_msg, "The argument '%s' is not valid.", arg_err);
+                error("SCANNER", scanner.line, err_msg);
+            } else {
+                char err_msg[64];
+                sprintf(err_msg, "The argument n°%d is not valid.", scanner.instructions->args_count);
+                error("SCANNER", scanner.line, err_msg);
+            }
+        }
+        arg->type = ARG_I_INDIRECT;
+        arg->as.reg = REG_I_INDIRECTION;
+    } 
+    // Process DT and ST registers
+    else {
+        if((int)(scanner.current - scanner.start) != 2) {
+            
+            if(((int)(scanner.current - scanner.start) < 32)) {
+                char arg_err[((int)(scanner.current - scanner.start)) + 1];
+                strncpy(arg_err, scanner.start, (int)(scanner.current - scanner.start));
+                arg_err[(int)(scanner.current - scanner.start)] = '\0';
+                char err_msg[64];
+                sprintf(err_msg, "The argument '%s' is not valid.", arg_err);
+                error("SCANNER", scanner.line, err_msg);
+            } else {
+                char err_msg[64];
+                sprintf(err_msg, "The argument n°%d is not valid.", scanner.instructions->args_count);
+                error("SCANNER", scanner.line, err_msg);
+            }
+        }
+        if(*scanner.start == 'd' && scanner.start[1] == 't') {
+            arg->type = ARG_TIME_REGISTER;
+            arg->as.reg = REG_DELAY_TIMER; 
+        } else if(*scanner.start == 's' && scanner.start[1] == 't') {
+            arg->type = ARG_TIME_REGISTER;
+            arg->as.reg = REG_SOUND_TIMER; 
+        }
+    }
 }
 
 static Argument get_argument() {
     // printf("Entering get_argument with\n   start: '%c'\n   current:'%c'\n", *scanner.start, peek());
     Argument arg;
     arg.type = ARG_ERROR;
-    if(is_alpha(*scanner.start)) {
+    if(is_alpha(*scanner.start) || *scanner.start == '[') {
         process_register(&arg);
     } else if (is_numeric(*scanner.start)) {
         process_number(&arg);
@@ -330,6 +433,12 @@ static void process_line() {
             case ARG_I_REGISTER:
                 printf("   [ARG]: Added argument type ARG_I_REGISTER with value %d\n", (int)arg.as.reg);
                 break;
+            case ARG_I_INDIRECT:
+                printf("   [ARG]: Added argument type ARG_I_INDIRECT with value %d\n", (int)arg.as.reg);
+                break;
+            case ARG_TIME_REGISTER:
+                printf("   [ARG]: Added argument type ARG_TIME_REGISTER with value %d\n", (int)arg.as.reg);
+                break;
             case ARG_ADDRESS:
                 printf("   [ARG]: Added argument type ARG_ADDRESS with value %d\n", (int)arg.as.address);
                 break;
@@ -338,6 +447,9 @@ static void process_line() {
                 break;
             case ARG_NIBBLE:
                 printf("   [ARG]: Added argument type ARG_NIBBLE with value %d\n", (int)arg.as.nibble);
+                break;
+            case ARG_KEY:
+                printf("   [ARG]: Added argument type ARG_KEY\n");
                 break;
             default:    return;
         }
@@ -369,6 +481,8 @@ void init_scanner(const char* src) {
 
 void assemble(const char* src) {
     init_scanner(src);
+    // Create template instruction to check
+    init_valid_instructions();
     while(!is_at_end()) {
         // read_line();
         process_line();

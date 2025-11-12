@@ -2,6 +2,10 @@
 #define MEMORY_H
 #include "common.h"
 
+#define INST_NB 20
+
+
+
 #define GROW_CAPACITY(capacity) \
     ((capacity) = (capacity) < 8 ? 8 : (capacity) * 2)
 

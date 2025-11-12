@@ -26,6 +26,8 @@ typedef enum {
     REG_VF,
     REG_I,
     REG_I_INDIRECTION,
+    REG_F,              // I alias
+    REG_B,              // I alias
     REG_DELAY_TIMER,
     REG_SOUND_TIMER
 } Register;
@@ -37,6 +39,9 @@ typedef enum {
 typedef enum {
     ARG_V_REGISTER,
     ARG_I_REGISTER,
+    ARG_I_INDIRECT,
+    ARG_TIME_REGISTER,  // Can have 'dt' (delay timer) or 'st' (sound timer) values
+    ARG_KEY,
     ARG_ADDRESS,
     ARG_BYTE,
     ARG_NIBBLE,
@@ -102,8 +107,27 @@ typedef struct {
     int args_capacity;
 } Instruction;
 
+/**
+ * @brief Defines a valid suite of arg types
+ * to associate to an opcode
+ * 
+ */
+typedef struct {
+    ArgType *args;
+    int arg_count;
+} ArgSuite;
+
+
+typedef struct {
+    Opcode opcode;
+    ArgSuite** suites;
+    uint16_t* binaries;
+    int suites_count;
+} InstructionValidator;
+
+
 
 void add_argument(Instruction* inst, Argument* arg);
 void init_instruction(Instruction* inst);
-
+void init_valid_instructions();
 #endif
