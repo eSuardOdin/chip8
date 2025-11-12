@@ -24,7 +24,10 @@ typedef enum {
     REG_VD,
     REG_VE,
     REG_VF,
-    REG_I
+    REG_I,
+    REG_I_INDIRECTION,
+    REG_DELAY_TIMER,
+    REG_SOUND_TIMER
 } Register;
 
 /**
@@ -32,7 +35,8 @@ typedef enum {
  * 
  */
 typedef enum {
-    ARG_REGISTER,
+    ARG_V_REGISTER,
+    ARG_I_REGISTER,
     ARG_ADDRESS,
     ARG_BYTE,
     ARG_NIBBLE,
@@ -78,12 +82,12 @@ typedef enum {
     OP_DRW,
     OP_SKP,
     OP_SKNP,
-    OP_SCD,
-    OP_SCR,
-    OP_SCL,
-    OP_EXIT,
-    OP_LOW,
-    OP_HIGH,
+    //OP_SCD,
+    //OP_SCR,
+    //OP_SCL,
+    //OP_EXIT,
+    //OP_LOW,
+    //OP_HIGH,
     OP_ERROR
 } Opcode;
 

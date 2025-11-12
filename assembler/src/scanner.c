@@ -50,19 +50,19 @@ static char peekNext() {
  * @return false if char is not alpha.
  */
 static bool is_alpha(char c) {
-    return c >= 'a' && c <= 'z';
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
 
 static bool is_numeric(char c) {
     return c >= '0' && c <= '9';
 }
 
-static bool is_alphanumeric(char c) {
-    return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
+static bool is_arg_symbol(char c) {
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '[' || c == ']';
 }
 
 static bool is_invalid_char(char c) {
-    return !(c == ' ' || c == '\n' || c == '\0' || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9'));
+    return !(c == ' ' || c == '\n' || c == '\0' || c == '[' || c == ']' || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9'));
 }
 
 static void skip_whitespace() {
@@ -74,10 +74,6 @@ static void skip_whitespace() {
             case '\r':
                 advance();
                 break;
-            // case '\n':
-            //     scanner.line++;
-            //     advance();
-            //     break;
             // Check if comment
             case '#':
                 while(peek() != '\n' && !is_at_end()) advance();
@@ -111,15 +107,8 @@ static Opcode get_opcode() {
             }
             return OP_ERROR;
         case 'd': return check_opcode(1, 2, "rw", OP_DRW);
-        case 'e': return check_opcode(1, 3, "xit", OP_EXIT);
-        case 'h': return check_opcode(1, 3, "igh", OP_HIGH);
         case 'j': return check_opcode(1, 1, "p", OP_JP);
-        case 'l':
-            switch(scanner.start[1]) {
-                case 'd': return OP_LD;
-                case 'o': return check_opcode(2, 1, "w", OP_LOW);
-            }
-            return OP_ERROR;
+        case 'l': return check_opcode(1, 1, "d", OP_LD);
         case 'o': return check_opcode(1, 1, "r", OP_OR);
         case 'r':
             switch(scanner.start[1]) {
@@ -129,11 +118,11 @@ static Opcode get_opcode() {
             return OP_ERROR;
         case 'x': return check_opcode(1, 2, "or", OP_XOR);
         case 's': switch(scanner.start[1]) {
-            case 'c': switch(scanner.start[2]) {
-                case 'l': return OP_SCL;
-                case 'd': return OP_SCD;
-                case 'r': return OP_SCR;
-            }
+            // case 'c': switch(scanner.start[2]) {
+            //     case 'l': return OP_SCL;
+            //     case 'd': return OP_SCD;
+            //     case 'r': return OP_SCR;
+            // }
                 return OP_ERROR;
             case 'e': return OP_SE;
             case 'h': switch(scanner.start[2]) {
@@ -210,7 +199,6 @@ static void process_number(Argument* arg) {
 }
 
 static void process_register(Argument* arg) {
-    arg->type = ARG_REGISTER;
 
     // Check if 'v' register
     if(*scanner.start == 'v') {
@@ -230,6 +218,8 @@ static void process_register(Argument* arg) {
                 error("SCANNER", scanner.line, err_msg);
             }
         }
+        // Valid V register
+        arg->type = ARG_V_REGISTER;
         if(is_numeric(scanner.start[1])) {
                 arg->as.reg = (Register)(scanner.start[1] - '0');
             }
@@ -239,6 +229,7 @@ static void process_register(Argument* arg) {
                 
         
     } else if(*scanner.start == 'i') {
+        printf("*** [DBG] i reg detected. ***\n");
         if((int)(scanner.current - scanner.start) != 1) {
             
             if(((int)(scanner.current - scanner.start) < 55)) {
@@ -254,6 +245,7 @@ static void process_register(Argument* arg) {
                 error("SCANNER", scanner.line, err_msg);
             }
         }
+        arg->type = ARG_I_REGISTER;
         arg->as.reg = REG_I;
     }
 }
@@ -268,51 +260,6 @@ static Argument get_argument() {
         process_number(&arg);
     }
     return arg;
-}
-/**
- * @brief Reads a line and extract instruction if any.
- * 
- * @return Instruction 
- */
-static void read_line() {
-    int current_line = scanner.line;
-    while(current_line == scanner.line && !is_at_end()) {
-        
-        // --- OPCODE --- 
-        // Skip leading whitespace if any.
-        skip_whitespace();
-
-        // Exit if EOF
-        if(is_at_end()) return;
-
-        // Place scanner on token beginning
-        scanner.start = scanner.current;
-
-        // Check first opcode char.
-        if(!is_alpha(peek())) {
-            char str[68];
-            sprintf(str, "The opcode must start with a lowcase alphabetic symbol. Got '%c'\n", peek());
-            error("SCANNER", scanner.line, str);
-        }
-        // Get full opcode
-        while(is_alpha(peek())) advance();
-        Opcode op = get_opcode();
-        if(op == OP_ERROR) error("SCANNER", scanner.line, "The opcode was not valid.");
-        
-        Instruction inst;
-        inst.opcode = op;
-
-        // --- ARGS ---
-        skip_whitespace();
-        // Place scanner on token beginning
-        scanner.start = scanner.current;
-        Argument arg = get_argument();
-        printf("Opcode : %d\nArgument type: %d\nArgument value: %d\n\n", (int)op, (int)arg.type, (int)arg.as.reg);
-
-
-        skip_whitespace();
-    }
-
 }
 
 
@@ -360,7 +307,7 @@ static void process_line() {
 
 
         scanner.start = scanner.current;
-        while(is_alphanumeric(peek())) advance();
+        while(is_arg_symbol(peek())) advance();
         // Check if invalid char
         if(is_invalid_char(peek())) {
             char err_str[64];
@@ -377,8 +324,11 @@ static void process_line() {
 
         // Debug
         switch(arg.type) {
-            case ARG_REGISTER:
-                printf("   [ARG]: Added argument type ARG_REGISTER with value %d\n", (int)arg.as.reg);
+            case ARG_V_REGISTER:
+                printf("   [ARG]: Added argument type ARG_V_REGISTER with value %d\n", (int)arg.as.reg);
+                break;
+            case ARG_I_REGISTER:
+                printf("   [ARG]: Added argument type ARG_I_REGISTER with value %d\n", (int)arg.as.reg);
                 break;
             case ARG_ADDRESS:
                 printf("   [ARG]: Added argument type ARG_ADDRESS with value %d\n", (int)arg.as.address);

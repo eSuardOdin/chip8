@@ -1,6 +1,105 @@
-add v1 i
+# Programme de test pour scanner CHIP-8
+# Ce fichier teste toutes les instructions et types d'arguments
 
-cls    v0   v3
- and   v0 va       vf   v3   v2
-     or
-xor
+# Test des instructions de base
+cls
+high
+low
+exit
+
+# Test des instructions avec registres
+ld v0 0x05
+ld v1 0XFF
+ld va 15
+ld vf 0
+ld i 0x200
+
+# Test des opérations arithmétiques
+add v0 v1
+add v2 0x10
+sub v3 v4
+subn v5 v6
+
+# Test des opérations logiques
+and v0 v1
+or v2 v3
+xor v4 v5
+
+# Test des opérations de décalage
+shl v0
+shr v1
+
+# Test des sauts et appels
+jp 0x300
+call 0x400
+ret
+
+# Test du dessin
+drw v0 v1 5
+drw va vb 0xF
+
+# Test des instructions de comparaison
+se v0 v1
+se v2 0x42
+sne v3 v4
+sne v5 0xAA
+
+# Test des instructions clavier
+skp v0
+sknp v1
+
+# Test du random
+rnd v0 0xFF
+rnd v5 0x0F
+
+# Test des instructions de scroll (SCHIP)
+scr
+scl
+scd 4
+
+# Test avec commentaires inline
+ld v0 0x10  # Charge 16 dans v0
+add v0 v1   # Additionne v0 et v1
+
+# Test avec espaces multiples
+ld    v0    0x20
+add   v1    v2
+
+# Test de tous les registres v0-vf
+ld v0 0
+ld v1 1
+ld v2 2
+ld v3 3
+ld v4 4
+ld v5 5
+ld v6 6
+ld v7 7
+ld v8 8
+ld v9 9
+ld va 10
+ld vb 11
+ld vc 12
+ld vd 13
+ld ve 14
+ld vf 15
+
+# Test des différentes tailles de nombres
+ld v0 0x0      # nibble (0-15)
+ld v1 0xF      # nibble max
+ld v2 0x10     # byte (16-255)
+ld v3 0xFF     # byte max
+jp 0x100       # address (256-4095)
+jp 0xFFF       # address max
+
+# Test notation décimale et hexadécimale
+ld v0 10       # décimal
+ld v1 0x0A     # hexadécimal
+add v2 255     # décimal
+add v3 0xFF    # hexadécimal
+
+# Lignes vides pour tester le scanner
+
+
+# Test de fin
+sys 0x000
+exit
