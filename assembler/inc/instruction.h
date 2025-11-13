@@ -121,7 +121,6 @@ typedef struct {
 typedef struct {
     Opcode opcode;
     ArgSuite** suites;
-    uint16_t* binaries;
     int suites_count;
 } InstructionValidator;
 
@@ -130,4 +129,5 @@ typedef struct {
 void add_argument(Instruction* inst, Argument* arg);
 void init_instruction(Instruction* inst);
 void init_valid_instructions();
+bool check_instruction(Instruction* inst);
 #endif

@@ -425,6 +425,11 @@ static void process_line() {
         }
         add_argument(&instruction, &arg);
 
+
+        // Check instruction 
+        if(!check_instruction(&instruction)) {
+            error("SCANNER", scanner.line, "Instruction not valid.");
+        }
         // Debug
         switch(arg.type) {
             case ARG_V_REGISTER:

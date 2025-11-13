@@ -1,5 +1,7 @@
 #include "../inc/instruction.h"
 #include "../inc/memory.h"
+#include <stdbool.h>
+#include <stdint.h>
 
 void add_argument(Instruction* inst, Argument* arg) {
     if(inst->args_capacity < inst->args_count + 1) {
@@ -17,6 +19,20 @@ void init_instruction(Instruction* inst) {
 }
 
 static InstructionValidator valid_instructions[INST_NB];
+
+
+
+static InstructionValidator init_validator(int suites_count, Opcode op) {
+    InstructionValidator val;
+    val.opcode = op;
+    val.suites_count = suites_count;
+    val.suites = malloc(sizeof(ArgSuite*) * suites_count);
+    return val;
+}
+
+static void add_binary(int index, ArgSuite* argsuite, InstructionValidator* validator) {
+    validator->suites[index] = argsuite; 
+}
 
 void init_valid_instructions() {
     // Create arg suites
@@ -70,6 +86,12 @@ void init_valid_instructions() {
     vreg_timereg.args[0] = ARG_V_REGISTER;
     vreg_timereg.args[1] = ARG_TIME_REGISTER;
 
+    ArgSuite timereg_vreg;
+    vreg_timereg.arg_count = 2;
+    vreg_timereg.args = malloc(sizeof(ArgType) * timereg_vreg.arg_count);
+    vreg_timereg.args[0] = ARG_TIME_REGISTER;
+    vreg_timereg.args[1] = ARG_V_REGISTER;
+
     ArgSuite vreg_key;
     vreg_key.arg_count = 2;
     vreg_key.args = malloc(sizeof(ArgType) * vreg_key.arg_count);
@@ -103,7 +125,117 @@ void init_valid_instructions() {
     vreg_vreg_nibble.args[1] = ARG_V_REGISTER;
     vreg_vreg_nibble.args[1] = ARG_NIBBLE;
 
+
+
+    // Opcodes implementation
+    int op_num = 0;
+    // - cls
+    InstructionValidator cls = init_validator(1, OP_CLS);
+    add_binary(0, &empty,&cls);
+    valid_instructions[op_num++] = cls;
+    // - ret
+    InstructionValidator ret = init_validator(1,OP_RET);
+    add_binary(0, &empty, &ret);
+    valid_instructions[op_num++] = ret;
+    // - sys
+    InstructionValidator sys = init_validator(1, OP_SYS);
+    add_binary(0,&addr,&sys);
+    valid_instructions[op_num++] = sys;
+    // - jp
+    InstructionValidator jp = init_validator(2, OP_JP);
+    add_binary(0, &addr, &jp);
+    add_binary(1, &vreg_addr, &jp);
+    valid_instructions[op_num++] = jp;
+    // - call
+    InstructionValidator call = init_validator(1, OP_CALL);
+    add_binary(0, &addr,&call);
+    valid_instructions[op_num++] = call;
+    // - se
+    InstructionValidator se = init_validator(2, OP_SE);
+    add_binary(0, &vreg_byte,&se);
+    add_binary(1, &vreg_vreg,&se);
+    valid_instructions[op_num++] = se;
+    // - sne
+    InstructionValidator sne = init_validator(2, OP_SNE);
+    add_binary(0, &vreg_byte,&sne);
+    add_binary(1, &vreg_vreg,&sne);
+    valid_instructions[op_num++] = sne;
+    // - ld
+    InstructionValidator ld = init_validator(10, OP_LD);
+    add_binary(0, &vreg_byte, &ld);
+    add_binary(1, &vreg_vreg, &ld);
+    add_binary(2, &ireg_addr, &ld);
+    add_binary(3, &vreg_timereg, &ld);
+    add_binary(4, &vreg_key, &ld);
+    add_binary(5, &timereg_vreg, &ld);
+    add_binary(6, &timereg_vreg, &ld);
+    add_binary(7, &ireg_vreg, &ld);
+    add_binary(8, &iregind_vreg, &ld);
+    add_binary(9, &vreg_iregind, &ld);
+    valid_instructions[op_num++] = ld;
+    // - add
+    InstructionValidator add = init_validator(3, OP_ADD);
+    add_binary(0, &vreg_byte, &add);
+    add_binary(1, &vreg_vreg, &add);
+    add_binary(2, &ireg_vreg, &add);
+    valid_instructions[op_num++] = add;
+    // - or
+    InstructionValidator or = init_validator(1, OP_OR);
+    add_binary(0, &vreg_vreg, &or);
+    valid_instructions[op_num++] = or;
+    // - and
+    InstructionValidator and = init_validator(1, OP_AND);
+    add_binary(0, &vreg_vreg,&and);
+    valid_instructions[op_num++] = and;
+    // - xor
+    InstructionValidator xor = init_validator(1, OP_XOR);
+    add_binary(0, &vreg_vreg, &xor);
+    valid_instructions[op_num++] = xor;
+    // - sub
+    InstructionValidator sub = init_validator(1, OP_SUB);
+    add_binary(0, &vreg_vreg, &sub);
+    valid_instructions[op_num++] = sub;
+    // - shr
+    InstructionValidator shr = init_validator(2, OP_SHR);
+    add_binary(0, &vreg_vreg, &shr);
+    add_binary(1, &vreg, &shr);
+    valid_instructions[op_num++] = shr;
+    // - subn
+    InstructionValidator subn = init_validator(1, OP_SUBN);
+    add_binary(0, &vreg_vreg, &subn);
+    valid_instructions[op_num++] = subn;
+    // - shl
+    InstructionValidator shl = init_validator(2, OP_SHL);
+    add_binary(0, &vreg_vreg, &shl);
+    add_binary(1, &vreg, &shl);
+    valid_instructions[op_num++] = shl;
+    // - rnd
+    InstructionValidator rnd = init_validator(1, OP_RND);
+    add_binary(0, &vreg_byte, &rnd);
+    valid_instructions[op_num++] = rnd;
+    // - drw
+    InstructionValidator drw = init_validator(1, OP_DRW);
+    add_binary(0, &vreg_byte, &drw);
+    valid_instructions[op_num++] = drw;
+    // - skp
+    InstructionValidator skp = init_validator(1, OP_SKP);
+    add_binary(0, &vreg, &skp);
+    valid_instructions[op_num++] = skp;
+    // - sknp
+    InstructionValidator sknp = init_validator(1, OP_SKNP);
+    add_binary(0, &vreg, &sknp);
+    valid_instructions[op_num++] = sknp;
 }
+
+
+
+bool check_instruction(Instruction* inst) {
+    bool is_valid = false;
+
+
+    return is_valid;
+}
+
 
 // Instruction type :
 /*
