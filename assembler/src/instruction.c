@@ -3,6 +3,22 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+
+// Debug
+static void print_arg_type(ArgType type) {
+    switch (type) {
+        case ARG_V_REGISTER:    printf("[ARG_V_REGISTER]"); break;
+        case ARG_I_REGISTER:    printf("[ARG_I_REGISTER]"); break;
+        case ARG_ADDRESS:       printf("[ARG_ADDRESS]"); break;
+        case ARG_I_INDIRECT:    printf("[ARG_I_INDIRECT]"); break;
+        case ARG_KEY:           printf("[ARG_KEY]"); break;  
+        case ARG_BYTE:          printf("[ARG_BYTE]"); break;
+        case ARG_NIBBLE:        printf("[ARG_NIBBLE]"); break;
+        case ARG_TIME_REGISTER: printf("[ARG_TIME_REGISTER]"); break;
+        case ARG_ERROR:         printf("[ARG_ERROR]"); break;
+    }
+}
+
 void add_argument(Instruction* inst, Argument* arg) {
     if(inst->args_capacity < inst->args_count + 1) {
         GROW_CAPACITY(inst->args_capacity);
@@ -18,7 +34,7 @@ void init_instruction(Instruction* inst) {
     inst->opcode = OP_ERROR;
 }
 
-static InstructionValidator valid_instructions[INST_NB];
+static InstructionValidator *valid_instructions;
 
 
 
@@ -35,6 +51,10 @@ static void add_binary(int index, ArgSuite* argsuite, InstructionValidator* vali
 }
 
 void init_valid_instructions() {
+    printf("[DEBUG] - init_valid_instructions(): Enter function.\n");
+    valid_instructions = malloc(sizeof(InstructionValidator) * INST_NB);
+    
+    
     // Create arg suites
     
     // 0
@@ -87,10 +107,10 @@ void init_valid_instructions() {
     vreg_timereg.args[1] = ARG_TIME_REGISTER;
 
     ArgSuite timereg_vreg;
-    vreg_timereg.arg_count = 2;
-    vreg_timereg.args = malloc(sizeof(ArgType) * timereg_vreg.arg_count);
-    vreg_timereg.args[0] = ARG_TIME_REGISTER;
-    vreg_timereg.args[1] = ARG_V_REGISTER;
+    timereg_vreg.arg_count = 2;
+    timereg_vreg.args = malloc(sizeof(ArgType) * timereg_vreg.arg_count);
+    timereg_vreg.args[0] = ARG_TIME_REGISTER;
+    timereg_vreg.args[1] = ARG_V_REGISTER;
 
     ArgSuite vreg_key;
     vreg_key.arg_count = 2;
@@ -123,8 +143,10 @@ void init_valid_instructions() {
     vreg_vreg_nibble.args = malloc(sizeof(ArgType) * vreg_vreg_nibble.arg_count);
     vreg_vreg_nibble.args[0] = ARG_V_REGISTER;
     vreg_vreg_nibble.args[1] = ARG_V_REGISTER;
-    vreg_vreg_nibble.args[1] = ARG_NIBBLE;
+    vreg_vreg_nibble.args[2] = ARG_NIBBLE;
 
+
+    printf("[DEBUG] - init_valid_instructions(): Opcodes implementation.\n");
 
 
     // Opcodes implementation
@@ -229,11 +251,38 @@ void init_valid_instructions() {
 
 
 
-bool check_instruction(Instruction* inst) {
-    bool is_valid = false;
+ArgSuite* check_instruction(Instruction* inst) {
+    printf("[DEBUG] - check_instruction(): Enter function.\n");
+    ArgSuite* ret = NULL;
+    for(int i = 0; i < INST_NB; i++) {
+        printf("[DEBUG] - check_instruction(): Loop in valid_instructions.\n");
+        // Get the associated opcode
+        printf("[DEBUG] - check_instruction(): OP n°%d vs OP n°%d.\n", inst->opcode,valid_instructions[i].opcode);
+        bool op_found = false;
+        if(inst->opcode == valid_instructions[i].opcode) {
+            op_found = true;
+            // Check valids instructions
+            for(int j = 0; j < valid_instructions[i].suites_count; j++) {
+                ArgSuite* current_argsuite = valid_instructions[i].suites[j];
+                printf("*** VALID INSTRUCTION n°%d FOR OPCODE %d :\n   number of argsuites : %d\n", j, inst->opcode, current_argsuite->arg_count);
+                bool is_found = true;
+                for(int k = 0; k < current_argsuite->arg_count; k++) {
+                    printf("\tArg type n°%d: '", k);
+                    print_arg_type(current_argsuite->args[k]);
+                    printf("' tested against '");
+                    print_arg_type(current_argsuite->args[k]);
+                    printf("'.\n");
+                    if(current_argsuite->args[k] != inst->args[k].type) {
+                        is_found = false;
+                    }
+                    if(is_found) return current_argsuite;
+                }
+            }
+            if(op_found) return ret;
+        }
+    }
 
-
-    return is_valid;
+    return ret;
 }
 
 

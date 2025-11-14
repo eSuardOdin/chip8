@@ -2,7 +2,6 @@
 #define MEMORY_H
 #include "common.h"
 
-#define INST_NB 20
 
 
 

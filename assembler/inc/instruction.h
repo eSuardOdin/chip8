@@ -3,6 +3,9 @@
 
 #include "common.h"
 
+#define INST_NB 20
+
+
 /**
  * @brief Enum describing CHIP 8's registers
  * 
@@ -129,5 +132,5 @@ typedef struct {
 void add_argument(Instruction* inst, Argument* arg);
 void init_instruction(Instruction* inst);
 void init_valid_instructions();
-bool check_instruction(Instruction* inst);
+ArgSuite* check_instruction(Instruction* inst);
 #endif

@@ -427,8 +427,10 @@ static void process_line() {
 
 
         // Check instruction 
-        if(!check_instruction(&instruction)) {
+        if(check_instruction(&instruction) == NULL) {
             error("SCANNER", scanner.line, "Instruction not valid.");
+        } else {
+            printf("[INSTRUCTION VALIDATED]\n\n");
         }
         // Debug
         switch(arg.type) {

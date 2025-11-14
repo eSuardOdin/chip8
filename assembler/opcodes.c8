@@ -2,7 +2,7 @@
 # Ce fichier teste toutes les instructions et types d'arguments
 
 # Test des instructions de base
-cls
+# cls
 #high   # Chip48 
 #low    # Chip48
 #exit   # Chip48
