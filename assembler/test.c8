@@ -1,3 +1,4 @@
-cls
-ret
-jp v0 0x222
+#cls
+ld va v0
+#ret
+#ret

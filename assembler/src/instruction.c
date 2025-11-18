@@ -254,32 +254,36 @@ void init_valid_instructions() {
 ArgSuite* check_instruction(Instruction* inst) {
     printf("[DEBUG] - check_instruction(): Enter function.\n");
     ArgSuite* ret = NULL;
-    for(int i = 0; i < INST_NB; i++) {
-        printf("[DEBUG] - check_instruction(): Loop in valid_instructions.\n");
-        // Get the associated opcode
-        printf("[DEBUG] - check_instruction(): OP n°%d vs OP n°%d.\n", inst->opcode,valid_instructions[i].opcode);
-        bool op_found = false;
-        if(inst->opcode == valid_instructions[i].opcode) {
-            op_found = true;
-            // Check valids instructions
-            for(int j = 0; j < valid_instructions[i].suites_count; j++) {
-                ArgSuite* current_argsuite = valid_instructions[i].suites[j];
-                printf("*** VALID INSTRUCTION n°%d FOR OPCODE %d :\n   number of argsuites : %d\n", j, inst->opcode, current_argsuite->arg_count);
-                bool is_found = true;
-                for(int k = 0; k < current_argsuite->arg_count; k++) {
-                    printf("\tArg type n°%d: '", k);
-                    print_arg_type(current_argsuite->args[k]);
-                    printf("' tested against '");
-                    print_arg_type(current_argsuite->args[k]);
-                    printf("'.\n");
-                    if(current_argsuite->args[k] != inst->args[k].type) {
-                        is_found = false;
-                    }
-                    if(is_found) return current_argsuite;
+
+    printf("[DEBUG] - check_instruction(): Loop in valid_instructions.\n");
+    // Get the associated opcode
+    printf("[DEBUG] - check_instruction(): OP n°%d vs OP n°%d.\n", inst->opcode,valid_instructions[(int)inst->opcode].opcode);
+    bool op_found = false;
+    if(inst->opcode == valid_instructions[(int)inst->opcode].opcode) {
+        op_found = true;
+        // Check valids instructions
+        for(int j = 0; j < valid_instructions[(int)inst->opcode].suites_count; j++) {
+            ArgSuite* current_argsuite = valid_instructions[(int)inst->opcode].suites[j];
+            printf("*** VALID INSTRUCTION n°%d FOR OPCODE %d :\n   number of arguments : %d\n", j, inst->opcode, current_argsuite->arg_count);
+            bool is_found = true;
+            // Check empty arguments opcode
+            if(!current_argsuite->arg_count && !inst->args_count) return current_argsuite;
+            // Check if suite arg number is equal to current instruction
+            if(current_argsuite->arg_count != inst->args_count) continue;
+            // Check argument suite
+            for(int k = 0; k < current_argsuite->arg_count; k++) {
+                printf("\tArg type n°%d: '", k);
+                print_arg_type(inst->args[k].type);
+                printf("' tested against '");
+                print_arg_type(current_argsuite->args[k]);
+                printf("'.\n");
+                if(current_argsuite->args[k] != inst->args[k].type) {
+                    is_found = false;
                 }
             }
-            if(op_found) return ret;
+            if(is_found) return current_argsuite;
         }
+        if(op_found) return ret;
     }
 
     return ret;

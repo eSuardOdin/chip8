@@ -401,11 +401,11 @@ static void process_line() {
     while(1) {
         skip_whitespace();
         if(peek() == '\n' || is_at_end()) {
-            if(*scanner.current == '\n') {
-                scanner.line++;
-                advance();
-            }
-            return;
+            // if(*scanner.current == '\n') {
+            //     scanner.line++;
+            //     advance();
+            // }
+            break;
         }
 
 
@@ -426,12 +426,7 @@ static void process_line() {
         add_argument(&instruction, &arg);
 
 
-        // Check instruction 
-        if(check_instruction(&instruction) == NULL) {
-            error("SCANNER", scanner.line, "Instruction not valid.");
-        } else {
-            printf("[INSTRUCTION VALIDATED]\n\n");
-        }
+        
         // Debug
         switch(arg.type) {
             case ARG_V_REGISTER:
@@ -461,7 +456,15 @@ static void process_line() {
             default:    return;
         }
     }
-    if(*scanner.current == '\n') {
+    printf("[DEBUG] - process_line(): Exited arg loop whit *scanner.curent='%c'.\n", *scanner.current);
+
+    if(*scanner.current == '\n' || is_at_end()) {
+        // Check instruction 
+        if(check_instruction(&instruction) == NULL) {
+            error("SCANNER", scanner.line, "Instruction not valid.");
+        } else {
+            printf("[INSTRUCTION VALIDATED]\n\n");
+        }
         scanner.line++;
         advance();
     }
