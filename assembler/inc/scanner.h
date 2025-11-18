@@ -16,6 +16,6 @@ typedef struct {
 
 
 void init_scanner(const char* src);
-void assemble(const char* src);
+void assemble(const char* src, const char* dst);
 
 #endif

@@ -32,8 +32,8 @@ static char* readFile(const char* path) {
 
 int main(int argc, char** argv) {
 
-    if(argc != 2) {
-        fprintf(stderr, "Usage : chipasm <file>.\n");
+    if(argc != 3) {
+        fprintf(stderr, "Usage : chipasm <source> <destination>.\n");
         exit(EXIT_FAILURE);
     }
 
@@ -41,6 +41,6 @@ int main(int argc, char** argv) {
 
     printf("%s\n", src);
 
-    assemble(src);
+    assemble(src, argv[2]);
     exit(EXIT_SUCCESS);
 }

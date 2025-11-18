@@ -295,7 +295,7 @@ void init_valid_instructions() {
     valid_instructions[op_num++] = rnd;
     // - drw
     InstructionValidator drw = init_validator(1, OP_DRW);
-    add_binary(0, &vreg_byte, &drw);
+    add_binary(0, &vreg_vreg_nibble, &drw);
     valid_instructions[op_num++] = drw;
     // - skp
     InstructionValidator skp = init_validator(1, OP_SKP);
@@ -402,21 +402,39 @@ uint16_t encode_instruction(Instruction* inst, ArgSuite* argsuite) {
             }
         }
 
-        case OP_SNE: printf("[OP_SNE]"); break;
-        case OP_LD: printf("[OP_LD]"); break;
-        case OP_ADD: printf("[OP_ADD]"); break;
-        case OP_OR: printf("[OP_OR]"); break;
-        case OP_AND: printf("[OP_AND]"); break;
-        case OP_XOR: printf("[OP_XOR]"); break;
-        case OP_SUB: printf("[OP_SUB]"); break;
-        case OP_SHR: printf("[OP_SHR]"); break;
-        case OP_SUBN: printf("[OP_SUBN]"); break;
-        case OP_SHL: printf("[OP_SHL]"); break;
-        case OP_RND: printf("[OP_RND]"); break;
-        case OP_DRW: printf("[OP_DRW]"); break;
-        case OP_SKP: printf("[OP_SKP]"); break;
-        case OP_SKNP: printf("[OP_SKNP]"); break;
-        case OP_ERROR: printf("[OP_ERROR]"); break;
+        case OP_SNE: {
+            if(argsuite->args[1] == ARG_BYTE) {
+                return 0x4000 | ((uint8_t)inst->args[0].as.reg << 8) | inst->args[1].as.byte;
+            }
+            else {
+                return (0x9000 | ((uint8_t)inst->args[0].as.reg << 8) | (inst->args[1].as.reg << 4)) & 0xFFF0;
+            }
+        }
+
+        case OP_LD: {
+            if(argsuite->args[1] == ARG_BYTE) {
+                return 0x6000 | ((uint8_t)inst->args[0].as.reg << 8) | inst->args[1].as.byte;
+            }
+            else if(argsuite->args[0] == ARG_V_REGISTER && argsuite->args[1] == ARG_V_REGISTER) {
+                return (0x8000 | ((uint8_t)inst->args[0].as.reg << 8) | (inst->args[1].as.reg << 4)) & 0xFFF0;
+            }
+        }
+
+
+        // case OP_ADD: printf("[OP_ADD]"); break;
+        // case OP_OR: printf("[OP_OR]"); break;
+        // case OP_AND: printf("[OP_AND]"); break;
+        // case OP_XOR: printf("[OP_XOR]"); break;
+        // case OP_SUB: printf("[OP_SUB]"); break;
+        // case OP_SHR: printf("[OP_SHR]"); break;
+        // case OP_SUBN: printf("[OP_SUBN]"); break;
+        // case OP_SHL: printf("[OP_SHL]"); break;
+        // case OP_RND: printf("[OP_RND]"); break;
+        // case OP_DRW: printf("[OP_DRW]"); break;
+        // case OP_SKP: printf("[OP_SKP]"); break;
+        // case OP_SKNP: printf("[OP_SKNP]"); break;
+        // case OP_ERROR: printf("[OP_ERROR]"); break;
+        default: return 0;
     }
 
     return bin;

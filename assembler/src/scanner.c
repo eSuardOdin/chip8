@@ -405,10 +405,6 @@ static void process_line() {
     while(1) {
         skip_whitespace();
         if(peek() == '\n' || is_at_end()) {
-            // if(*scanner.current == '\n') {
-            //     scanner.line++;
-            //     advance();
-            // }
             break;
         }
 
@@ -495,7 +491,7 @@ void init_scanner(const char* src) {
 
 
 
-void assemble(const char* src) {
+void assemble(const char* src, const char* dst) {
     init_scanner(src);
     // To store the binary
     init_encoded_instruction(&instructions);
@@ -507,7 +503,7 @@ void assemble(const char* src) {
     }
 
     // Write file
-    FILE* output = fopen("test.bin", "w");
+    FILE* output = fopen(dst, "w");
     fwrite(instructions.instructions, sizeof(uint16_t), instructions.count, output);
 }
 
