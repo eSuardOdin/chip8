@@ -370,6 +370,17 @@ ArgSuite* check_instruction(Instruction* inst) {
     return NULL;
 }
 
+static uint16_t get_address(Instruction* inst, int arg_index) {
+    if(inst->args[arg_index].type == ARG_BYTE)   return (uint16_t)inst->args[arg_index].as.byte;
+    if(inst->args[arg_index].type == ARG_NIBBLE) return (uint16_t)inst->args[arg_index].as.nibble;
+    return inst->args[arg_index].as.address;
+}
+
+static uint8_t get_byte(Instruction* inst, int arg_index) {
+    if(inst->args[arg_index].type == ARG_BYTE)   return inst->args[arg_index].as.byte;
+    return inst->args[arg_index].as.nibble;
+}
+
 /**
  * @brief Encodes the valid instruction into CHIP8 binary
  * 
@@ -384,18 +395,20 @@ uint16_t encode_instruction(Instruction* inst, ArgSuite* argsuite) {
 
         case OP_RET: return 0x00EE;
 
-        case OP_SYS: return inst->args[0].as.address & 0x0FFF;
-
-        case OP_JP: {
-            if(inst->args[0].type != ARG_V_REGISTER)    return 0x1000 | (inst->args[0].as.address & 0x0FFF);
-            else                                        return 0xB000 | (inst->args[1].as.address & 0x0FFF);
+        case OP_SYS: {
+            return get_address(inst, 0) & 0x0FFF;
         }
 
-        case OP_CALL: return 0x2000 || (inst->args[0].as.address & 0x0FFF);
+        case OP_JP: {
+            if(inst->args[0].type != ARG_V_REGISTER)    return 0x1000 | (get_address(inst, 0) & 0x0FFF);
+            else                                        return 0xB000 | (get_address(inst, 1) & 0x0FFF);
+        }
+
+        case OP_CALL: return 0x2000 | (get_address(inst, 0) & 0x0FFF);
 
         case OP_SE: {
             if(argsuite->args[1] == ARG_BYTE) {
-                return 0x3000 | ((uint8_t)inst->args[0].as.reg << 8) | inst->args[1].as.byte;
+                return 0x3000 | ((uint8_t)inst->args[0].as.reg << 8) | get_byte(inst, 1);
             }
             else {
                 return (0x5000 | ((uint8_t)inst->args[0].as.reg << 8) | (inst->args[1].as.reg << 4)) & 0xFFF0;
@@ -404,7 +417,7 @@ uint16_t encode_instruction(Instruction* inst, ArgSuite* argsuite) {
 
         case OP_SNE: {
             if(argsuite->args[1] == ARG_BYTE) {
-                return 0x4000 | ((uint8_t)inst->args[0].as.reg << 8) | inst->args[1].as.byte;
+                return 0x4000 | ((uint8_t)inst->args[0].as.reg << 8) | get_byte(inst, 1);
             }
             else {
                 return (0x9000 | ((uint8_t)inst->args[0].as.reg << 8) | (inst->args[1].as.reg << 4)) & 0xFFF0;
@@ -413,15 +426,21 @@ uint16_t encode_instruction(Instruction* inst, ArgSuite* argsuite) {
 
         case OP_LD: {
             if(argsuite->args[1] == ARG_BYTE) {
-                return 0x6000 | ((uint8_t)inst->args[0].as.reg << 8) | inst->args[1].as.byte;
+                return 0x6000 | ((uint8_t)inst->args[0].as.reg << 8) | get_byte(inst, 1);
             }
             else if(argsuite->args[0] == ARG_V_REGISTER && argsuite->args[1] == ARG_V_REGISTER) {
                 return (0x8000 | ((uint8_t)inst->args[0].as.reg << 8) | (inst->args[1].as.reg << 4)) & 0xFFF0;
             }
+            else if (argsuite->args[0] == ARG_I_REGISTER) {
+                // Get the number
+                return 0xA000 | get_address(inst, 0);
+            }
         }
 
 
-        // case OP_ADD: printf("[OP_ADD]"); break;
+        case OP_ADD: {
+
+        }
         // case OP_OR: printf("[OP_OR]"); break;
         // case OP_AND: printf("[OP_AND]"); break;
         // case OP_XOR: printf("[OP_XOR]"); break;
