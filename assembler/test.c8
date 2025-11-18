@@ -1,4 +1,8 @@
-#cls
-ld va v0
-#ret
-#ret
+cls
+ret
+sys 0xff
+sys 255
+jp v0 2654
+jp 0x32
+se v0 32
+se va vf

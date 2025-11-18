@@ -3,8 +3,12 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+
 
 Scanner scanner;
+EncodedInstructions instructions;
+
 
 /**
  * @brief Returns the current char and advances to the next one.
@@ -456,14 +460,16 @@ static void process_line() {
             default:    return;
         }
     }
-    printf("[DEBUG] - process_line(): Exited arg loop whit *scanner.curent='%c'.\n", *scanner.current);
+    // printf("[DEBUG] - process_line(): Exited arg loop whit *scanner.curent='%c'.\n", *scanner.current);
 
     if(*scanner.current == '\n' || is_at_end()) {
         // Check instruction 
-        if(check_instruction(&instruction) == NULL) {
+        ArgSuite* argsuite = check_instruction(&instruction);
+        if(argsuite == NULL) {
             error("SCANNER", scanner.line, "Instruction not valid.");
         } else {
-            printf("[INSTRUCTION VALIDATED]\n\n");
+            print_instruction(&instruction);
+            add_encoded_instruction(&instructions, encode_instruction(&instruction, argsuite));
         }
         scanner.line++;
         advance();
@@ -491,11 +497,17 @@ void init_scanner(const char* src) {
 
 void assemble(const char* src) {
     init_scanner(src);
+    // To store the binary
+    init_encoded_instruction(&instructions);
     // Create template instruction to check
     init_valid_instructions();
     while(!is_at_end()) {
         // read_line();
         process_line();
     }
+
+    // Write file
+    FILE* output = fopen("test.bin", "w");
+    fwrite(instructions.instructions, sizeof(uint16_t), instructions.count, output);
 }
 

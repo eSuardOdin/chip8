@@ -5,6 +5,11 @@
 
 #define INST_NB 20
 
+typedef struct {
+    uint16_t* instructions;
+    int count;
+    int capacity;
+} EncodedInstructions;
 
 /**
  * @brief Enum describing CHIP 8's registers
@@ -131,6 +136,12 @@ typedef struct {
 
 void add_argument(Instruction* inst, Argument* arg);
 void init_instruction(Instruction* inst);
+void init_encoded_instruction(EncodedInstructions* inst);
+void add_encoded_instruction(EncodedInstructions* inst, uint16_t bin);
 void init_valid_instructions();
 ArgSuite* check_instruction(Instruction* inst);
+void print_arg_type(ArgType type);
+void print_opcode(Opcode op);
+void print_instruction(Instruction* inst);
+uint16_t encode_instruction(Instruction* inst, ArgSuite* argsuite);
 #endif

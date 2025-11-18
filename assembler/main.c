@@ -42,6 +42,5 @@ int main(int argc, char** argv) {
     printf("%s\n", src);
 
     assemble(src);
-
     exit(EXIT_SUCCESS);
 }

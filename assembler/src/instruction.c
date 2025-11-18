@@ -2,10 +2,11 @@
 #include "../inc/memory.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 
 
-// Debug
-static void print_arg_type(ArgType type) {
+// *** Debug ***
+void print_arg_type(ArgType type) {
     switch (type) {
         case ARG_V_REGISTER:    printf("[ARG_V_REGISTER]"); break;
         case ARG_I_REGISTER:    printf("[ARG_I_REGISTER]"); break;
@@ -18,6 +19,45 @@ static void print_arg_type(ArgType type) {
         case ARG_ERROR:         printf("[ARG_ERROR]"); break;
     }
 }
+
+void print_opcode(Opcode op) {
+    switch (op) {
+        case OP_CLS: printf("[OP_CLS]"); break;
+        case OP_RET: printf("[OP_RET]"); break;
+        case OP_SYS: printf("[OP_SYS]"); break;
+        case OP_JP: printf("[OP_JP]"); break;
+        case OP_CALL: printf("[OP_CALL]"); break;
+        case OP_SE: printf("[OP_SE]"); break;
+        case OP_SNE: printf("[OP_SNE]"); break;
+        case OP_LD: printf("[OP_LD]"); break;
+        case OP_ADD: printf("[OP_ADD]"); break;
+        case OP_OR: printf("[OP_OR]"); break;
+        case OP_AND: printf("[OP_AND]"); break;
+        case OP_XOR: printf("[OP_XOR]"); break;
+        case OP_SUB: printf("[OP_SUB]"); break;
+        case OP_SHR: printf("[OP_SHR]"); break;
+        case OP_SUBN: printf("[OP_SUBN]"); break;
+        case OP_SHL: printf("[OP_SHL]"); break;
+        case OP_RND: printf("[OP_RND]"); break;
+        case OP_DRW: printf("[OP_DRW]"); break;
+        case OP_SKP: printf("[OP_SKP]"); break;
+        case OP_SKNP: printf("[OP_SKNP]"); break;
+        case OP_ERROR: printf("[OP_ERROR]"); break;
+    }
+}
+
+void print_instruction(Instruction* inst) {
+    print_opcode(inst->opcode);
+    for(int i = 0; i < inst->args_count; i++) {
+        putchar(' ');
+        print_arg_type(inst->args[i].type);
+    }
+    putchar('\n');
+}
+// ****************************
+
+
+
 
 void add_argument(Instruction* inst, Argument* arg) {
     if(inst->args_capacity < inst->args_count + 1) {
@@ -46,10 +86,28 @@ static InstructionValidator init_validator(int suites_count, Opcode op) {
     return val;
 }
 
+void init_encoded_instruction(EncodedInstructions* inst) {
+    inst->instructions = NULL;
+    inst->count = 0;
+    inst->capacity = 0;
+}
+
+void add_encoded_instruction(EncodedInstructions* inst, uint16_t bin) {
+    if(inst->capacity < inst->count + 1) {
+        GROW_CAPACITY(inst->capacity);
+        inst->instructions = GROW_ARRAY(uint16_t, inst->instructions, inst->capacity);
+    }
+    inst->instructions[inst->count++] = bin;
+}
+
 static void add_binary(int index, ArgSuite* argsuite, InstructionValidator* validator) {
     validator->suites[index] = argsuite; 
 }
 
+/**
+ * @brief Initialize all valid arsuites to be tested against
+ * 
+ */
 void init_valid_instructions() {
     printf("[DEBUG] - init_valid_instructions(): Enter function.\n");
     valid_instructions = malloc(sizeof(InstructionValidator) * INST_NB);
@@ -249,59 +307,117 @@ void init_valid_instructions() {
     valid_instructions[op_num++] = sknp;
 }
 
-
-
-ArgSuite* check_instruction(Instruction* inst) {
-    printf("[DEBUG] - check_instruction(): Enter function.\n");
-    ArgSuite* ret = NULL;
-
-    printf("[DEBUG] - check_instruction(): Loop in valid_instructions.\n");
-    // Get the associated opcode
-    printf("[DEBUG] - check_instruction(): OP n°%d vs OP n°%d.\n", inst->opcode,valid_instructions[(int)inst->opcode].opcode);
-    bool op_found = false;
-    if(inst->opcode == valid_instructions[(int)inst->opcode].opcode) {
-        op_found = true;
-        // Check valids instructions
-        for(int j = 0; j < valid_instructions[(int)inst->opcode].suites_count; j++) {
-            ArgSuite* current_argsuite = valid_instructions[(int)inst->opcode].suites[j];
-            printf("*** VALID INSTRUCTION n°%d FOR OPCODE %d :\n   number of arguments : %d\n", j, inst->opcode, current_argsuite->arg_count);
-            bool is_found = true;
-            // Check empty arguments opcode
-            if(!current_argsuite->arg_count && !inst->args_count) return current_argsuite;
-            // Check if suite arg number is equal to current instruction
-            if(current_argsuite->arg_count != inst->args_count) continue;
-            // Check argument suite
-            for(int k = 0; k < current_argsuite->arg_count; k++) {
-                printf("\tArg type n°%d: '", k);
-                print_arg_type(inst->args[k].type);
-                printf("' tested against '");
-                print_arg_type(current_argsuite->args[k]);
-                printf("'.\n");
-                if(current_argsuite->args[k] != inst->args[k].type) {
-                    is_found = false;
-                }
-            }
-            if(is_found) return current_argsuite;
+/**
+ * @brief Compare the instruction against a valid instruction argument suite.
+ * I use this function to handle all special cases
+ * 
+ * @param inst Pointer to the instruction tested
+ * @param argsuite The argsuite compared to
+ * @return true if match
+ * @return false if no match
+ */
+static bool compare_arguments(Instruction* inst, ArgSuite* argsuite) {
+    
+    // *** Check for special cases ***
+    // JP V0 addr
+    if(inst->opcode == OP_JP) {
+        if(inst->args_count && inst->args[0].type == ARG_V_REGISTER) {
+            if(inst->args[0].as.reg != REG_V0) return false;
         }
-        if(op_found) return ret;
     }
 
-    return ret;
+    // *** General cases ***
+    // Loop in argsuite arguments
+    for(int i = 0; i < argsuite->arg_count; i++) {
+        
+        ArgType tested = inst->args[i].type;
+        ArgType valid = argsuite->args[i]; 
+        
+        // If param type does not match
+        if(tested != valid) {
+            // If [address vs byte || nibble] => VALID
+            if(valid == ARG_ADDRESS && (tested == ARG_BYTE || tested == ARG_NIBBLE)) continue;
+            // If [byte vs nibble] => VALID
+            else if(valid == ARG_BYTE && tested == ARG_NIBBLE) continue;
+            // Else, bad argument provided
+            return false;
+        }
+    }
+
+    return true;
 }
 
+/**
+ * @brief Checks the instruction provided
+ * 
+ * @param inst Instruction read by scanner
+ * @return ArgSuite* The valid argsuite associated with instruction
+ */
+ArgSuite* check_instruction(Instruction* inst) {
+    // Get the associated opcode
+    bool op_found = false;
+    int op_index = (int)inst->opcode;
 
-// Instruction type :
-/*
-0:
-    - NULL
-1:
-    - ARG_ADDR
-    - ARG_V_REG
-2:
-    - ARG_V_REG + ARG_V_REG
-    - ARG_V_REG + ARG_ADDR  // V reg must be v0, to handle.
-    - ARG_V_REG + ARG_BYTE
-    - ARG_V
+    if(inst->opcode == valid_instructions[op_index].opcode) {
+        // Check valids instructions
+        for(int j = 0; j < valid_instructions[op_index].suites_count; j++) {
+            
+            ArgSuite* current_argsuite = valid_instructions[op_index].suites[j];
+            if(compare_arguments(inst, current_argsuite)) return current_argsuite;
+        }
+    }
 
+    return NULL;
+}
 
-*/
+/**
+ * @brief Encodes the valid instruction into CHIP8 binary
+ * 
+ * @param inst The valid instruction provided
+ * @param argsuite The structure of arguments (not sure it is usefull)
+ * @return uint16_t The encoded instruction
+ */
+uint16_t encode_instruction(Instruction* inst, ArgSuite* argsuite) {
+    uint16_t bin;
+    switch(inst->opcode) {
+        case OP_CLS: return 0x00E0;
+
+        case OP_RET: return 0x00EE;
+
+        case OP_SYS: return inst->args[0].as.address & 0x0FFF;
+
+        case OP_JP: {
+            if(inst->args[0].type != ARG_V_REGISTER)    return 0x1000 | (inst->args[0].as.address & 0x0FFF);
+            else                                        return 0xB000 | (inst->args[1].as.address & 0x0FFF);
+        }
+
+        case OP_CALL: return 0x2000 || (inst->args[0].as.address & 0x0FFF);
+
+        case OP_SE: {
+            if(argsuite->args[1] == ARG_BYTE) {
+                return 0x3000 | ((uint8_t)inst->args[0].as.reg << 8) | inst->args[1].as.byte;
+            }
+            else {
+                return (0x5000 | ((uint8_t)inst->args[0].as.reg << 8) | (inst->args[1].as.reg << 4)) & 0xFFF0;
+            }
+        }
+
+        case OP_SNE: printf("[OP_SNE]"); break;
+        case OP_LD: printf("[OP_LD]"); break;
+        case OP_ADD: printf("[OP_ADD]"); break;
+        case OP_OR: printf("[OP_OR]"); break;
+        case OP_AND: printf("[OP_AND]"); break;
+        case OP_XOR: printf("[OP_XOR]"); break;
+        case OP_SUB: printf("[OP_SUB]"); break;
+        case OP_SHR: printf("[OP_SHR]"); break;
+        case OP_SUBN: printf("[OP_SUBN]"); break;
+        case OP_SHL: printf("[OP_SHL]"); break;
+        case OP_RND: printf("[OP_RND]"); break;
+        case OP_DRW: printf("[OP_DRW]"); break;
+        case OP_SKP: printf("[OP_SKP]"); break;
+        case OP_SKNP: printf("[OP_SKNP]"); break;
+        case OP_ERROR: printf("[OP_ERROR]"); break;
+    }
+
+    return bin;
+}
