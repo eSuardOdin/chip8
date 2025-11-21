@@ -45,12 +45,13 @@ typedef struct
 /* Error status enum */
 typedef enum {
 	SUCCESS,
+	PC_MODIFIED,
 	RAM_OVERFLOW,
 	STACK_OVERFLOW,
 	SDL_INIT_ERROR,
 	SDL_WINDOW_CREATION_ERROR,
 	SDL_RENDERER_CREATION_ERROR
-	} t_status;
+} t_status;
 
 
 // --- Functions ---

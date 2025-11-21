@@ -105,7 +105,7 @@ t_status run_chip8(chip8_t *c)
 	while(is_running)
 	{
 		fetch_instruction(c, &opcode);
-		process_opcode(&opcode, c);
+		t_status status = process_opcode(&opcode, c);
 		// Poll event
 		while(SDL_PollEvent(&event))
 		{
@@ -115,7 +115,9 @@ t_status run_chip8(chip8_t *c)
 				is_running = 0;
 			}
 		}
-		c->pc += 2;
+		if(status != PC_MODIFIED) {
+			c->pc += 2;
+		}
 		SDL_Delay(16); // 60hZ
 	}
 	free_chip8(c);

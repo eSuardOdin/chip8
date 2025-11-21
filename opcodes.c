@@ -58,7 +58,7 @@ t_status process_opcode(uint16_t *opcode, chip8_t *c)
             return process_e(opcode, c);
 			break;
 		case 0xf:
-            //return process_f(opcode, c);
+            return process_f(opcode, c);
 			break;
 
 	}
@@ -118,7 +118,7 @@ t_status sub_ret(chip8_t *c)
     /* Decrement PC */
     c->sp--;
     printf("RET : PC is now %0x (%d) and stack pointer is %d\n", c->pc, c->pc, c->sp);
-    return SUCCESS;
+    return PC_MODIFIED;
 }
 
 
@@ -135,7 +135,7 @@ t_status jmp(uint16_t *opcode, chip8_t *c)
     uint16_t subop = *opcode & 0xFFF;
     c->pc = subop;
     printf("JMP addr : jumping to %0x (%d)\n", c->pc, c->pc); 
-    return SUCCESS;
+    return PC_MODIFIED;
 }
 
 /* --- Nibble 2 --- */
@@ -155,10 +155,10 @@ t_status call_sub(uint16_t *opcode, chip8_t *c)
     {
         return STACK_OVERFLOW;
     }
-    c->stack[c->sp] = c->pc;
+    c->stack[c->sp] = c->pc+2;
     c->pc = subop;
    printf("CALL %03x instruction : stack pointer is now %d, pointing on %0x. PC is now %0x(%d)\n", subop, c->sp, c->stack[c->sp], c->pc, c->pc);
-    return SUCCESS;
+    return PC_MODIFIED;
 }
 
 
@@ -514,7 +514,7 @@ t_status jmp_plus(uint16_t *opcode, chip8_t *c)
     printf("JP V0, addr : Setting program counter to V0 (%0x) + %0x -> ", c->V[0x0], *opcode & 0xFFF);
     c->pc = c->V[0x0] + (*opcode & 0xFFF);
     printf("%0x\n", c->pc);
-    return SUCCESS;
+    return PC_MODIFIED;
 }
 
 /* Nibble C */
@@ -663,7 +663,24 @@ t_status skip_nprsd(uint16_t *opcode, chip8_t *c)
 }
 
 /* Nibble F */
-t_status process_f(uint16_t *opcode, chip8_t *c);
+t_status process_f(uint16_t *opcode, chip8_t *c) {
+    // Get register
+    uint8_t reg_x = (*opcode & 0xF00) >> 8;
+    // Switch opcode
+    switch(*opcode & 0xFF) {
+        case 0x33: {
+            // BCD
+            return SUCCESS;
+        }
+        case 0x55: {
+            for(uint8_t i = 0; i < reg_x; i++) {
+                *(c->V + i) = c->ram[c->I + i];
+            }
+            return SUCCESS;
+        }
+
+    }
+}
 t_status load_dt(uint16_t *opcode, chip8_t *c);     // LD Vx, DT
 t_status get_key(uint16_t *opcode, chip8_t *c);     // LD Vx, K
 t_status set_dt(uint16_t *opcode, chip8_t *c);      // LD DT, Vx
