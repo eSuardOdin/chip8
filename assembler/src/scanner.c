@@ -348,10 +348,10 @@ static void process_register(Argument* arg) {
             }
         }
         if(*scanner.start == 'd' && scanner.start[1] == 't') {
-            arg->type = ARG_TIME_REGISTER;
+            arg->type = ARG_DELAY_TIMER;
             arg->as.reg = REG_DELAY_TIMER; 
         } else if(*scanner.start == 's' && scanner.start[1] == 't') {
-            arg->type = ARG_TIME_REGISTER;
+            arg->type = ARG_SOUND_TIMER;
             arg->as.reg = REG_SOUND_TIMER; 
         }
     }
@@ -438,8 +438,11 @@ static void process_line() {
             case ARG_I_INDIRECT:
                 printf("   [ARG]: Added argument type ARG_I_INDIRECT with value %d\n", (int)arg.as.reg);
                 break;
-            case ARG_TIME_REGISTER:
-                printf("   [ARG]: Added argument type ARG_TIME_REGISTER with value %d\n", (int)arg.as.reg);
+            case ARG_DELAY_TIMER:
+                printf("   [ARG]: Added argument type ARG_DELAY_TIMER with value %d\n", (int)arg.as.reg);
+                break;
+            case ARG_SOUND_TIMER:
+                printf("   [ARG]: Added argument type ARG_SOUND_TIMER with value %d\n", (int)arg.as.reg);
                 break;
             case ARG_ADDRESS:
                 printf("   [ARG]: Added argument type ARG_ADDRESS with value %d\n", (int)arg.as.address);

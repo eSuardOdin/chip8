@@ -15,7 +15,8 @@ void print_arg_type(ArgType type) {
         case ARG_KEY:           printf("[ARG_KEY]"); break;  
         case ARG_BYTE:          printf("[ARG_BYTE]"); break;
         case ARG_NIBBLE:        printf("[ARG_NIBBLE]"); break;
-        case ARG_TIME_REGISTER: printf("[ARG_TIME_REGISTER]"); break;
+        case ARG_DELAY_TIMER: printf("[ARG_DELAY_TIMER]"); break;
+        case ARG_SOUND_TIMER: printf("[ARG_SOUND_TIMER]"); break;
         case ARG_ERROR:         printf("[ARG_ERROR]"); break;
     }
 }
@@ -158,17 +159,23 @@ void init_valid_instructions() {
     ireg_addr.args[0] = ARG_I_REGISTER;
     ireg_addr.args[1] = ARG_ADDRESS;
 
-    ArgSuite vreg_timereg;
-    vreg_timereg.arg_count = 2;
-    vreg_timereg.args = malloc(sizeof(ArgType) * vreg_timereg.arg_count);
-    vreg_timereg.args[0] = ARG_V_REGISTER;
-    vreg_timereg.args[1] = ARG_TIME_REGISTER;
+    ArgSuite vreg_delaytimer;
+    vreg_delaytimer.arg_count = 2;
+    vreg_delaytimer.args = malloc(sizeof(ArgType) * vreg_delaytimer.arg_count);
+    vreg_delaytimer.args[0] = ARG_V_REGISTER;
+    vreg_delaytimer.args[1] = ARG_DELAY_TIMER;
 
-    ArgSuite timereg_vreg;
-    timereg_vreg.arg_count = 2;
-    timereg_vreg.args = malloc(sizeof(ArgType) * timereg_vreg.arg_count);
-    timereg_vreg.args[0] = ARG_TIME_REGISTER;
-    timereg_vreg.args[1] = ARG_V_REGISTER;
+    ArgSuite delaytimer_vreg;
+    delaytimer_vreg.arg_count = 2;
+    delaytimer_vreg.args = malloc(sizeof(ArgType) * delaytimer_vreg.arg_count);
+    delaytimer_vreg.args[0] = ARG_DELAY_TIMER;
+    delaytimer_vreg.args[1] = ARG_V_REGISTER;
+
+    ArgSuite soundtimer_vreg;
+    soundtimer_vreg.arg_count = 2;
+    soundtimer_vreg.args = malloc(sizeof(ArgType) * soundtimer_vreg.arg_count);
+    soundtimer_vreg.args[0] = ARG_SOUND_TIMER;
+    soundtimer_vreg.args[1] = ARG_V_REGISTER;
 
     ArgSuite vreg_key;
     vreg_key.arg_count = 2;
@@ -245,10 +252,10 @@ void init_valid_instructions() {
     add_binary(0, &vreg_byte, &ld);
     add_binary(1, &vreg_vreg, &ld);
     add_binary(2, &ireg_addr, &ld);
-    add_binary(3, &vreg_timereg, &ld);
+    add_binary(3, &vreg_delaytimer, &ld);
     add_binary(4, &vreg_key, &ld);
-    add_binary(5, &timereg_vreg, &ld);
-    add_binary(6, &timereg_vreg, &ld);
+    add_binary(5, &delaytimer_vreg, &ld);
+    add_binary(6, &soundtimer_vreg, &ld);
     add_binary(7, &ireg_vreg, &ld);
     add_binary(8, &iregind_vreg, &ld);
     add_binary(9, &vreg_iregind, &ld);
@@ -432,29 +439,80 @@ uint16_t encode_instruction(Instruction* inst, ArgSuite* argsuite) {
                 return (0x8000 | ((uint8_t)inst->args[0].as.reg << 8) | (inst->args[1].as.reg << 4)) & 0xFFF0;
             }
             else if (argsuite->args[0] == ARG_I_REGISTER) {
-                // Get the number
-                return 0xA000 | get_address(inst, 0);
+                switch (inst->args[0].as.reg) {
+                    case REG_I: return 0xA000 | get_address(inst, 1);
+                    case REG_F: return 0xF029 | ((inst->args[1].as.reg << 8) & 0x0F00);
+                    case REG_B: return 0xF033 | ((inst->args[1].as.reg << 8) & 0x0F00);
+                    default: error("SCANNER", -1, "Error in encoding");
+                }
+                if(inst->args[0].as.reg == REG_I) {
+                    
+                }
+            }
+            else if(argsuite->args[1] == ARG_DELAY_TIMER) {
+                return 0xF007 | ((inst->args[0].as.reg << 8) & 0x0F00);
+            }
+            else if(argsuite->args[1] == ARG_KEY) {
+                return 0xF00A | ((inst->args[0].as.reg << 8) & 0x0F00);
+            }
+            else if(argsuite->args[0] == ARG_DELAY_TIMER) {
+                return 0xF015 | ((inst->args[1].as.reg << 8) & 0x0F00);
+            }
+            else if(argsuite->args[0] == ARG_SOUND_TIMER) {
+                return 0xF018 | ((inst->args[1].as.reg << 8) & 0x0F00);
+            }
+            else if(argsuite->args[0] == ARG_I_INDIRECT) {
+                return 0xF055 | ((inst->args[1].as.reg << 8) & 0x0F00);
+            }
+            else if(argsuite->args[1] == ARG_I_INDIRECT) {
+                return 0xF065 | ((inst->args[0].as.reg << 8) & 0x0F00);
             }
         }
 
-
         case OP_ADD: {
-
+            if (argsuite->args[0] == ARG_I_REGISTER) {
+                return 0xF01E | ((inst->args[1].as.reg << 8) & 0x0F00);
+            }
+            else if(argsuite->args[1] == ARG_V_REGISTER) {
+                return 0x8004 | ((inst->args[0].as.reg << 8) & 0x0F00) | ((inst->args[1].as.reg << 4) & 0x00F0);
+            }
+            else {
+                return 0X7000 | ((inst->args[0].as.reg << 8) & 0x0F00) | (get_byte(inst, 1) & 0xFF);
+            }
         }
-        // case OP_OR: printf("[OP_OR]"); break;
-        // case OP_AND: printf("[OP_AND]"); break;
-        // case OP_XOR: printf("[OP_XOR]"); break;
-        // case OP_SUB: printf("[OP_SUB]"); break;
-        // case OP_SHR: printf("[OP_SHR]"); break;
-        // case OP_SUBN: printf("[OP_SUBN]"); break;
-        // case OP_SHL: printf("[OP_SHL]"); break;
-        // case OP_RND: printf("[OP_RND]"); break;
-        // case OP_DRW: printf("[OP_DRW]"); break;
-        // case OP_SKP: printf("[OP_SKP]"); break;
-        // case OP_SKNP: printf("[OP_SKNP]"); break;
+
+        case OP_OR: return 0x8001 | ((inst->args[0].as.reg << 8) & 0x0F00) | ((inst->args[1].as.reg << 4) & 0x00F0);
+        
+        case OP_AND: return 0x8002 | ((inst->args[0].as.reg << 8) & 0x0F00) | ((inst->args[1].as.reg << 4) & 0x00F0);
+        
+        case OP_XOR: return 0x8003 | ((inst->args[0].as.reg << 8) & 0x0F00) | ((inst->args[1].as.reg << 4) & 0x00F0);
+        
+        case OP_SUB: return 0x8005 | ((inst->args[0].as.reg << 8) & 0x0F00) | ((inst->args[1].as.reg << 4) & 0x00F0);
+        
+        case OP_SHR: {
+            if(argsuite->arg_count == 2) return 0x8006 | ((inst->args[0].as.reg << 8) & 0x0F00) | ((inst->args[1].as.reg << 4) & 0x00F0);
+            else return 0x8006 | ((inst->args[0].as.reg << 8) & 0x0F00);
+        }
+
+        case OP_SUBN: return 0x8007 | ((inst->args[0].as.reg << 8) & 0x0F00) | ((inst->args[1].as.reg << 4) & 0x00F0);
+        
+        case OP_SHL: {
+            if(argsuite->arg_count == 2) return 0x800E | ((inst->args[0].as.reg << 8) & 0x0F00) | ((inst->args[1].as.reg << 4) & 0x00F0);
+            else return 0x800E | ((inst->args[0].as.reg << 8) & 0x0F00);
+        }
+        
+        case OP_RND: return 0xC000 | ((inst->args[0].as.reg << 8) & 0x0F00) | (get_byte(inst, 1) & 0x00FF);
+        
+        case OP_DRW: return 0xD000 | ((inst->args[0].as.reg << 8) & 0x0F00) | ((inst->args[1].as.reg << 4) & 0x00F0) | (inst->args[2].as.nibble & 0xF);
+        
+        case OP_SKP: return 0xE09E | ((inst->args[0].as.reg << 8) & 0x0F00);
+        
+        case OP_SKNP: return 0xE0A1 | ((inst->args[0].as.reg << 8) & 0x0F00);
+        
         // case OP_ERROR: printf("[OP_ERROR]"); break;
         default: return 0;
     }
 
     return bin;
 }
+ 

@@ -1,8 +1,13 @@
-cls
-ret
-sys 0xff
-sys 255
-jp v0 2654
-jp 0x32
-se v0 32
-se va vf
+or v1 vb
+and vb v3
+xor v0 v1
+sub v3 v3
+shr v1
+shr v1 vf
+subn v7 v0
+shl v1
+shl v1 vf
+rnd v0 0xaf
+drw v0 v1 0xc
+skp v2
+sknp v2

@@ -42,6 +42,10 @@ $(OBJ_DIR)/main.o: main.c $(HEADERS)
 clean:
 	rm -rf $(OBJ_DIR) $(TARGET)
 
+# Enlever objets
+clean_obj:
+	rm -rf $(OBJ_DIR)
+
 # Nettoyage complet et recompilation
 rebuild: clean all
 

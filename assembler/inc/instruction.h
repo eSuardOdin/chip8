@@ -48,7 +48,8 @@ typedef enum {
     ARG_V_REGISTER,
     ARG_I_REGISTER,
     ARG_I_INDIRECT,
-    ARG_TIME_REGISTER,  // Can have 'dt' (delay timer) or 'st' (sound timer) values
+    ARG_DELAY_TIMER,  // Can have 'dt' (delay timer) or 'st' (sound timer) values
+    ARG_SOUND_TIMER,  // Can have 'dt' (delay timer) or 'st' (sound timer) values
     ARG_KEY,
     ARG_ADDRESS,
     ARG_BYTE,
