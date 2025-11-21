@@ -561,25 +561,29 @@ t_status draw(uint16_t *opcode, chip8_t *c)
         // Getting the line
         uint8_t sprite = c->ram[addr + y];
         printf("Next line to print : %0x\n", sprite);
+        // Get wrapped Y
+        uint8_t wrap_y = (reg_y + y) % HEIGHT;
         // Iterate through pixels
         for(uint8_t x = 0; x < 8; x++)
         {
+            // Get wrapped X
+            uint8_t wrap_x = (reg_x + x) % WIDTH;
             // Masking the current observed pixel
             uint8_t px = (sprite >> (7 - x)) & 1;
             // Checking for collision (refactor later for a true XOR ?) and put display value according to it
-            if(px & c->display[reg_x + x][reg_y + y])
+            if(px & c->display[wrap_x][wrap_y])
             {
                 c->V[0xF] = 1;
-                c->display[reg_x + x][reg_y + y] = 0;
+                c->display[wrap_x][wrap_y] = 0;
             }
             else
             {
-                c->display[reg_x + x][reg_y + y] = px;
+                c->display[wrap_x][wrap_y] = px;
             }
         }
     }
 
-
+    // **** Actual displaying to move in the display thread later ? ****
     // Print on screen - First clearing
     SDL_SetRenderDrawColor(c->renderer, 0, 0, 0, 255);
     SDL_RenderClear(c->renderer);
@@ -663,33 +667,68 @@ t_status skip_nprsd(uint16_t *opcode, chip8_t *c)
 }
 
 /* Nibble F */
-t_status process_f(uint16_t *opcode, chip8_t *c) {
-    // Get register
-    uint8_t reg_x = (*opcode & 0xF00) >> 8;
+t_status process_f(uint16_t *opcode, chip8_t *c)
+{
+    
     // Switch opcode
     switch(*opcode & 0xFF) {
-        case 0x33: {
-            // BCD
-            return SUCCESS;
-        }
-        case 0x55: {
-            for(uint8_t i = 0; i < reg_x; i++) {
-                *(c->V + i) = c->ram[c->I + i];
-            }
-            return SUCCESS;
-        }
+        case 0x33: return bcd(opcode, c);
+        case 0x55: return store_reg(opcode, c);
+        case 0x65: return read_reg(opcode, c);
+        
 
     }
+    return SUCCESS;
 }
+
+t_status bcd(uint16_t *opcode, chip8_t *c)
+{
+    // Get register
+    uint8_t reg_x = (*opcode & 0xF00) >> 8;
+    // Get value from reg
+    uint8_t value = c->V[reg_x];
+    // Store 100's in [I]
+    c->ram[c->I] = value / 100;
+    value %= 100;
+    // Store 10's in [I+1]
+    c->ram[c->I+1] = value / 10;
+    value %= 10;
+    // Store 1's in [I+2]
+    c->ram[c->I+2] = value;
+
+    return SUCCESS;
+}
+
+t_status store_reg(uint16_t *opcode, chip8_t *c)
+{
+    // Get register
+    uint8_t reg_x = (*opcode & 0xF00) >> 8;
+    // Store values from v0 to v[reg_x];
+    for(uint8_t i = 0; i <= reg_x; i++) 
+    {
+        c->ram[c->I + i] = *(c->V + i);
+    }
+    return SUCCESS;
+}
+
+t_status read_reg(uint16_t *opcode, chip8_t *c)
+{
+    // Get register
+    uint8_t reg_x = (*opcode & 0xF00) >> 8;
+    // Store values from v0 to v[reg_x];
+    for(uint8_t i = 0; i <= reg_x; i++) 
+    {
+        *(c->V + i) = c->ram[c->I + i];
+    }
+    return SUCCESS;
+}
+
 t_status load_dt(uint16_t *opcode, chip8_t *c);     // LD Vx, DT
 t_status get_key(uint16_t *opcode, chip8_t *c);     // LD Vx, K
 t_status set_dt(uint16_t *opcode, chip8_t *c);      // LD DT, Vx
 t_status set_st(uint16_t *opcode, chip8_t *c);      // LD ST, Vx
 t_status add_i_reg(uint16_t *opcode, chip8_t *c);   // ADD I, Vx
 t_status load_sprite(uint16_t *opcode, chip8_t *c); // LD F, Vx
-t_status get_decimal(uint16_t *opcode, chip8_t *c); // LD B, Vx
-t_status store_reg(uint16_t *opcode, chip8_t *c);   // LD [I], Vx
-t_status read_reg(uint16_t *opcode, chip8_t *c);    // LD, Vx, [I]
 
 
 

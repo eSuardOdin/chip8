@@ -64,13 +64,13 @@ t_status skip_nprsd(uint16_t *opcode, chip8_t *c);  // SKNP Vx
 
 /* Nibble F */
 t_status process_f(uint16_t *opcode, chip8_t *c);
+t_status bcd(uint16_t *opcode, chip8_t *c);         // LD B, Vx
 t_status load_dt(uint16_t *opcode, chip8_t *c);     // LD Vx, DT
 t_status get_key(uint16_t *opcode, chip8_t *c);     // LD Vx, K
 t_status set_dt(uint16_t *opcode, chip8_t *c);      // LD DT, Vx
 t_status set_st(uint16_t *opcode, chip8_t *c);      // LD ST, Vx
 t_status add_i_reg(uint16_t *opcode, chip8_t *c);   // ADD I, Vx
 t_status load_sprite(uint16_t *opcode, chip8_t *c); // LD F, Vx
-t_status get_decimal(uint16_t *opcode, chip8_t *c); // LD B, Vx
 t_status store_reg(uint16_t *opcode, chip8_t *c);   // LD [I], Vx
 t_status read_reg(uint16_t *opcode, chip8_t *c);    // LD, Vx, [I]
 
