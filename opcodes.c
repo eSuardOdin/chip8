@@ -588,7 +588,7 @@ t_status draw(uint16_t *opcode, chip8_t *c)
     SDL_SetRenderDrawColor(c->renderer, 0, 0, 0, 255);
     SDL_RenderClear(c->renderer);
     // Then printing 1's
-    SDL_SetRenderDrawColor(c->renderer, 255, 255, 255, 255);
+    SDL_SetRenderDrawColor(c->renderer, 200, 255, 200, 255);
     for(int y = 0; y < HEIGHT; y++) {
         for(int x = 0; x < WIDTH; x++) {
             if(c->display[x][y]) {
@@ -672,10 +672,13 @@ t_status process_f(uint16_t *opcode, chip8_t *c)
     
     // Switch opcode
     switch(*opcode & 0xFF) {
+        case 0x07: return load_dt(opcode, c);
+        case 0x15: return set_dt(opcode, c);
+        case 0x18: return set_st(opcode, c);
+        case 0x1E: return add_i_reg(opcode, c);
         case 0x33: return bcd(opcode, c);
         case 0x55: return store_reg(opcode, c);
         case 0x65: return read_reg(opcode, c);
-        
 
     }
     return SUCCESS;
@@ -711,6 +714,7 @@ t_status store_reg(uint16_t *opcode, chip8_t *c)
     return SUCCESS;
 }
 
+
 t_status read_reg(uint16_t *opcode, chip8_t *c)
 {
     // Get register
@@ -723,12 +727,59 @@ t_status read_reg(uint16_t *opcode, chip8_t *c)
     return SUCCESS;
 }
 
-t_status load_dt(uint16_t *opcode, chip8_t *c);     // LD Vx, DT
-t_status get_key(uint16_t *opcode, chip8_t *c);     // LD Vx, K
-t_status set_dt(uint16_t *opcode, chip8_t *c);      // LD DT, Vx
-t_status set_st(uint16_t *opcode, chip8_t *c);      // LD ST, Vx
-t_status add_i_reg(uint16_t *opcode, chip8_t *c);   // ADD I, Vx
-t_status load_sprite(uint16_t *opcode, chip8_t *c); // LD F, Vx
+
+t_status add_i_reg(uint16_t *opcode, chip8_t *c)
+{
+    // Get x reg
+    uint8_t reg_x = (*opcode & 0xF00) >> 8;
+    // Add it to I register
+    c->I += c->V[reg_x];
+    return SUCCESS;
+}
+
+
+t_status load_dt(uint16_t *opcode, chip8_t *c)
+{
+    // Get x reg
+    uint8_t reg_x = (*opcode & 0xF00) >> 8;
+    // Get DT value in Vx register
+    c->V[reg_x] = c->d_timer;
+    return SUCCESS;
+}
+
+
+t_status set_dt(uint16_t *opcode, chip8_t *c)
+{
+    // Get x reg
+    uint8_t reg_x = (*opcode & 0xF00) >> 8;
+    // Get Vx register value in DT
+    c->d_timer = c->V[reg_x];
+    return SUCCESS;
+}
+
+
+t_status set_st(uint16_t *opcode, chip8_t *c)
+{
+    // Get x reg
+    uint8_t reg_x = (*opcode & 0xF00) >> 8;
+    // Get Vx register value in ST
+    c->s_timer = c->V[reg_x];
+    return SUCCESS;
+}
+
+// To do, check font sprites
+t_status load_sprite(uint16_t *opcode, chip8_t *c)
+{
+
+    return SUCCESS;
+}
+
+// Wait for a key to be pressed 
+t_status get_key(uint16_t *opcode, chip8_t *c) 
+{
+
+    return SUCCESS;
+}
 
 
 
