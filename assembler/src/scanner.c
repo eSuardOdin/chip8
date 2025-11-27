@@ -370,6 +370,12 @@ static Argument get_argument() {
 }
 
 
+
+static uint16_t swap_endian(uint16_t value) {
+    return (value << 8) | (value >> 8);
+}
+
+
 static void process_line() {
     printf("[DEBUG] process_line() : line %d\n", scanner.line);
     // Skip trailing whitespace if any
@@ -468,7 +474,7 @@ static void process_line() {
             error("SCANNER", scanner.line, "Instruction not valid.");
         } else {
             print_instruction(&instruction);
-            add_encoded_instruction(&instructions, encode_instruction(&instruction, argsuite));
+            add_encoded_instruction(&instructions, swap_endian(encode_instruction(&instruction, argsuite)));
         }
         scanner.line++;
         advance();
@@ -491,6 +497,7 @@ void init_scanner(const char* src) {
     scanner.inst_count = 0;
     scanner.instructions = NULL;
 }
+
 
 
 

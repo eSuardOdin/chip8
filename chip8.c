@@ -1,25 +1,42 @@
 #include "chip8.h"
 #include "opcodes.h"
+#include "keyboard.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_events.h>
 #include <SDL2/SDL_render.h>
 #include <SDL2/SDL_timer.h>
 #include <SDL2/SDL_video.h>
+#include <SDL2/SDL_audio.h>
+#include <pthread.h>
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <time.h>
+
+#define BEEP_FREQUENCY 440
+
+static volatile bool running = true;
+
+
+// To keep track of beep phase
+static float phase = 0.0f;
+static pthread_t decrement_timers_thread;
+
+// Create a global mutex
+pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
+
 /* Inits the struct in a base status */
 t_status init_chip8(chip8_t *c)
 {
 
+	pthread_create(&decrement_timers_thread, NULL, decrement_timers, (void*) c);
 	// TODO : Find a better place to init rnd, maybe.
 	// Init RND
 	srand(time(NULL));
 	// TODO : Handle NULL error
 	memset(c, 0, sizeof(chip8_t));
 	// Init SDL
-    if(SDL_Init(SDL_INIT_VIDEO))
+    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_EVENTS | SDL_INIT_AUDIO))
         return SDL_INIT_ERROR;
     // Create Window
     c->window = SDL_CreateWindow("My CHIP-8 Emulator", 
@@ -44,6 +61,22 @@ t_status init_chip8(chip8_t *c)
 	// Stack pointer and Program counter -> See doc for 0x200
     c->sp = -1;
 	c->pc = 0x200; 
+
+	// Init keys
+	for(int i = 0; i < 16; i++) c->keys[i] = false;
+	// Init sdl audio
+	SDL_AudioSpec spec;
+    spec.freq = 44100;
+    spec.format = AUDIO_S16SYS;
+    spec.channels = 1;
+    spec.samples = 512;
+    spec.callback = beep_callback;
+    spec.userdata = &c->s_timer;
+    
+    SDL_OpenAudio(&spec, NULL);
+    SDL_PauseAudio(0);
+
+
 	// Show window
 	SDL_ShowWindow(c->window);
 	
@@ -61,9 +94,12 @@ t_status init_chip8(chip8_t *c)
 /* Free chip8, just a placeholder for now */
 t_status free_chip8(chip8_t *c)
 {
-	SDL_DestroyWindow(c->window);
-	SDL_DestroyRenderer(c->renderer);
-	free(c);
+	pthread_join(decrement_timers_thread, NULL);
+	SDL_CloseAudio();
+    SDL_DestroyRenderer(c->renderer);
+    SDL_DestroyWindow(c->window);
+    pthread_mutex_destroy(&mut);
+	SDL_Quit();
 	return SUCCESS;
 }
 
@@ -97,29 +133,94 @@ t_status fetch_instruction(chip8_t *c, uint16_t *opcode)
 
 t_status run_chip8(chip8_t *c)
 {
-	int is_running = 1;
+	running = true;
 	SDL_Event event;
 	uint16_t opcode;
 	SDL_RenderClear(c->renderer);
 	SDL_RenderPresent(c->renderer);
-	while(is_running)
+	
+	while(running)
 	{
+		pthread_mutex_lock(&mut);
 		fetch_instruction(c, &opcode);
 		t_status status = process_opcode(&opcode, c);
+		pthread_mutex_unlock(&mut);
 		// Poll event
 		while(SDL_PollEvent(&event))
 		{
-			if(event.type == SDL_QUIT)
+			switch(event.type)
 			{
-				SDL_Quit();
-				is_running = 0;
+				case SDL_QUIT:
+					running = false;;
+					break;
+				case SDL_KEYUP:
+				case SDL_KEYDOWN:
+					update_keyboard(&event.key, c);
+					break;
+				default: break;
 			}
 		}
 		if(status != PC_MODIFIED) {
 			c->pc += 2;
 		}
-		SDL_Delay(16); // 60hZ
+		usleep(2000);
 	}
+	
 	free_chip8(c);
 	return SUCCESS;
+}
+
+
+void beep_callback(void* userdata, uint8_t* stream, int len)
+{
+	uint8_t* sound_timer = (uint8_t*)userdata;
+	pthread_mutex_lock(&mut);
+	// Check if sound register is > 0
+	bool is_sound = *sound_timer;
+	pthread_mutex_unlock(&mut);
+
+	if(is_sound)
+	{
+		generate_beep(stream, len);
+	}
+	else
+	{
+		memset(stream, 0, len);
+	}
+}
+
+
+void generate_beep(uint8_t* stream, int len) {
+    int16_t* buffer = (int16_t*)stream;
+    int samples = len / 2;  // len est en bytes, on veut des samples (16-bit = 2 bytes)
+    
+    for(int i = 0; i < samples; i++) {
+        // Onde carrée simple : alterne entre -amplitude et +amplitude
+        float sample = (phase < 0.5f) ? 3000 : -3000;  // Amplitude modérée
+        buffer[i] = (int16_t)sample;
+        
+        // Incrémenter la phase
+        phase += BEEP_FREQUENCY / 44100.0f;
+        if(phase >= 1.0f) phase -= 1.0f;
+    }
+}
+
+void *decrement_timers(void *chip) {
+    struct timespec ts = {.tv_sec = 0, .tv_nsec = 16666666};
+    chip8_t* c = (chip8_t *)chip;
+    while(running) {
+        pthread_mutex_lock(&mut);
+		if(c->s_timer)
+		{
+			printf("SOUND TIMER IS %d.\n", c->s_timer);
+			c->s_timer--;
+		}
+		if(c->d_timer)
+		{
+			c->d_timer--;
+		}
+        pthread_mutex_unlock(&mut);
+
+        clock_nanosleep(CLOCK_MONOTONIC, 0, &ts, NULL);
+    }
 }

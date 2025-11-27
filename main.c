@@ -7,6 +7,7 @@
 #include "opcodes.h"
 #include <SDL2/SDL_video.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include <SDL2/SDL.h>
 
 int main(int argc, char* argv[])

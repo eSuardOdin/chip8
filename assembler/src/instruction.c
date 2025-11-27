@@ -388,6 +388,9 @@ static uint8_t get_byte(Instruction* inst, int arg_index) {
     return inst->args[arg_index].as.nibble;
 }
 
+
+
+
 /**
  * @brief Encodes the valid instruction into CHIP8 binary
  * 

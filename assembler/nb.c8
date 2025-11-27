@@ -1,6 +1,1 @@
-add v1 0xff
-add i 5
-add v0 0xfff
-add va 4095
-add vb 55
-add vc 0x1000
+ld v1 k

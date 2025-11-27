@@ -13,7 +13,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <SDL2/SDL.h>
-
+#include <stdbool.h>
 // --- Constants ---
 #define MAX_RAM 	4096
 #define REG_N		16
@@ -23,24 +23,7 @@
 #define PIX_SIZE	10
 
 // --- Structs and types ---
-typedef enum {
-	K_O,
-	K_1,
-	K_2,
-	K_3,
-	K_4,
-	K_5,
-	K_6,
-	K_7,
-	K_8,
-	K_9,
-	K_A,
-	K_B,
-	K_C,
-	K_D,
-	K_E,
-	K_F
-} keys_t;
+
 /* Base struct, represents the VM */
 typedef struct
 {
@@ -52,7 +35,7 @@ typedef struct
 	uint8_t 	sp;					// Stack pointer
 	uint8_t		s_timer;			// Sound timer register
 	uint8_t		d_timer;			// Delay timer register
-	uint16_t	keys;				// Keys 			*I'll use a bit per key (16 of them)*
+	bool		keys[16];			// Keys 			*I'll use a bit per key (16 of them)*
 	//uint16_t 	opcode;				// Current loaded instruction
 	uint8_t		display[WIDTH][HEIGHT];
 	SDL_Renderer *renderer;
@@ -84,4 +67,9 @@ t_status fetch_instruction(chip8_t *c, uint16_t *opcode);
 /* Main run loop */
 t_status run_chip8(chip8_t *c);
 
+
+// Threads callbacks
+void beep_callback(void* userdata, uint8_t* stream, int len);
+void generate_beep(uint8_t* stream, int len);
+void *decrement_timers(void *chip);
 #endif

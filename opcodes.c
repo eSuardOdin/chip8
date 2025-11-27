@@ -642,8 +642,8 @@ t_status process_e(uint16_t *opcode, chip8_t *c)
 t_status skip_prsd(uint16_t *opcode, chip8_t *c)
 {
     uint8_t reg_x = (*opcode & 0xF00) >> 8;
-    printf("SKP Vx : Checking if V[%0x] (%0x) is pressed (against current pressed keys -> %0x). ", reg_x, c->V[reg_x], c->keys);
-    if(c->V[reg_x] & c->keys)
+    printf("SKP Vx : Checking if V[%0x] (%0x) is pressed.\n", reg_x, c->V[reg_x]);
+    if(c->keys[c->V[reg_x]])
     {
         printf("Key pressed, skipping next instruction.\n");
         c->pc += 2;
@@ -662,7 +662,17 @@ t_status skip_prsd(uint16_t *opcode, chip8_t *c)
 */
 t_status skip_nprsd(uint16_t *opcode, chip8_t *c)
 {
-
+    uint8_t reg_x = (*opcode & 0xF00) >> 8;
+    printf("SKP Vx : Checking if V[%0x] (%0x) is pressed.\n", reg_x, c->V[reg_x]);
+    if(!c->keys[c->V[reg_x]])
+    {
+        printf("Key pressed, skipping next instruction.\n");
+        c->pc += 2;
+    }
+    else
+    {
+        printf("Key not pressed.\n");
+    }
     return SUCCESS;
 }
 
@@ -673,6 +683,7 @@ t_status process_f(uint16_t *opcode, chip8_t *c)
     // Switch opcode
     switch(*opcode & 0xFF) {
         case 0x07: return load_dt(opcode, c);
+        case 0x0A: return get_key(opcode, c);
         case 0x15: return set_dt(opcode, c);
         case 0x18: return set_st(opcode, c);
         case 0x1E: return add_i_reg(opcode, c);
@@ -777,7 +788,18 @@ t_status load_sprite(uint16_t *opcode, chip8_t *c)
 // Wait for a key to be pressed 
 t_status get_key(uint16_t *opcode, chip8_t *c) 
 {
-
+    uint8_t reg_x = (*opcode & 0xF00) >> 8;
+    bool is_pressed = false;
+    for(int i = 0; i < 16; i++)
+    {
+        if(c->keys[i])
+        {
+            c->V[reg_x] = i;
+            is_pressed = true;
+            break;
+        }
+    }
+    if(!is_pressed) c->pc -= 2; // If not pressed, wait.
     return SUCCESS;
 }
 
