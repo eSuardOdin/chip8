@@ -384,19 +384,21 @@ t_status sub_reg_xy(uint16_t *opcode, chip8_t *c)
 {
     printf("SUB Vx, Vy : substracting the value of V[%0x] (%0x) from value of V[%0x] (%0x). ", (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4], (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8]);
 
-    // Set VF 
-    c->V[0xF] = c->V[(*opcode & 0xF00) >> 8] > c->V[(*opcode & 0xF0) >> 4] ? 1 : 0;
+    // Set VF end value
+    uint8_t vf_value = c->V[(*opcode & 0xF00) >> 8] >= c->V[(*opcode & 0xF0) >> 4] ? 1 : 0;
     // Substract
     c->V[(*opcode & 0xF00) >> 8] -= c->V[(*opcode & 0xF0) >> 4];
-
+    
     if(c->V[0xF])
     {
-        printf("There was no underflow, V[%0x] is now %0x and V[F] is %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);      
+        printf("There was no underflow, V[%0x] is now %0x and V[F] is %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);      
     }
     else
     {
-        printf("UNDERFLOW, V[%0x] is now %0x and V[F] is %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);      
+        printf("UNDERFLOW, V[%0x] is now %0x and V[F] is %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);      
     }
+
+    c->V[0xF] = vf_value;
 	return SUCCESS;
 }
 
@@ -410,11 +412,11 @@ t_status shr_reg(uint16_t *opcode, chip8_t *c)
 {
     printf("SHR Vx {, Vy} : Dividing V[%0x] (%0x) by 2. ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8]);
     
-    // Setting VF
-    c->V[0xF] = c->V[(*opcode & 0xF00) >> 8] & 0x1;
     // Dividing by 2
     c->V[(*opcode & 0xF00) >> 8] = c->V[(*opcode & 0xF00) >> 8] >> 1;
     
+    // Setting VF
+    c->V[0xF] = c->V[(*opcode & 0xF00) >> 8] & 0x1;
     printf("V[%0x] is now %0x. VF has been set on %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);
 	return SUCCESS;
 }
@@ -429,11 +431,11 @@ t_status sub_reg_yx(uint16_t *opcode, chip8_t *c)
 {
     printf("SUBN Vx, Vy : substracting the value of V[%0x] (%0x) from value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
 
-    // Set VF 
-    c->V[0xF] = c->V[(*opcode & 0xF0) >> 4] > c->V[(*opcode & 0xF00) >> 8] ? 1 : 0;
+    // Set VF end value
+    uint8_t vf_value = c->V[(*opcode & 0xF0) >> 4] >= c->V[(*opcode & 0xF00) >> 8] ? 1 : 0;
     // Substract
     c->V[(*opcode & 0xF00) >> 8] = c->V[(*opcode & 0xF0) >> 4] - c->V[(*opcode & 0xF00) >> 8];
-
+    
     if(c->V[0xF])
     {
         printf("There was no underflow, V[%0x] is now %0x and V[F] is %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);      
@@ -442,6 +444,7 @@ t_status sub_reg_yx(uint16_t *opcode, chip8_t *c)
     {
         printf("UNDERFLOW, V[%0x] is now %0x and V[F] is %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);      
     }
+    c->V[0xF] = vf_value;
 	return SUCCESS;
 }
 

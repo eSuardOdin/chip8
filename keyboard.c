@@ -1,8 +1,8 @@
 #include "keyboard.h"
 /*
 123C    1234
-456D    QWER
-789E    ASDF
+456D    AZER
+789E    QSDF
 A0BF    WXCV
 
 */
