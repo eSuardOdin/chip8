@@ -163,7 +163,7 @@ t_status run_chip8(chip8_t *c)
 		if(status != PC_MODIFIED) {
 			c->pc += 2;
 		}
-		usleep(2000);
+		usleep(2000);	// Put frequency as a parameter
 	}
 	
 	free_chip8(c);

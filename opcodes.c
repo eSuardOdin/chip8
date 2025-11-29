@@ -418,7 +418,10 @@ t_status shr_reg(uint16_t *opcode, chip8_t *c)
 {
 
     // printf("SHR Vx {, Vy} : Dividing V[%0x] (%0x) by 2. ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8]);
-    
+    // ---- TO CHECK ----
+    // Setting vX to vY
+    c->V[(*opcode & 0xF00) >> 8] = c->V[(*opcode & 0xF0) >> 4];
+
     // Setting VF value
     uint8_t vf_value = c->V[(*opcode & 0xF00) >> 8] & 0x1; 
     // Dividing by 2
@@ -466,6 +469,10 @@ t_status shl_reg(uint16_t *opcode, chip8_t *c)
 {
     // printf("SHL Vx {, Vy} : Multiplying V[%0x] (%0x) by 2. ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8]);
     
+    // ---- TO CHECK ----
+    // Setting vX to vY
+    c->V[(*opcode & 0xF00) >> 8] = c->V[(*opcode & 0xF0) >> 4];
+
     // Setting VF
     uint8_t vf_value = (c->V[(*opcode & 0xF00) >> 8] & 128) ? 1 : 0;
     // Dividing by 2
