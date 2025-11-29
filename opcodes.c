@@ -9,7 +9,7 @@
 t_status process_opcode(uint16_t *opcode, chip8_t *c)
 {
 	uint16_t dig = *opcode >> 12;
-	printf("PC = %0x | instruction : %04x ", c->pc, *opcode);
+	// printf("PC = %0x | instruction : %04x ", c->pc, *opcode);
 	switch(dig)
 	{
 		case 0x0:
@@ -80,7 +80,7 @@ t_status process_0(uint16_t *opcode, chip8_t *c)
             return sub_ret(c);
             break;
         default:
-            printf("SYS addr : Jump to machine code routine at %03x\n", subop);
+            // printf("SYS addr : Jump to machine code routine at %03x\n", subop);
             break;
     }
     return SUCCESS;
@@ -92,7 +92,7 @@ t_status process_0(uint16_t *opcode, chip8_t *c)
 */
 t_status cls_screen(chip8_t *c)
 {
-    printf("CLS : Clearing screen.\n");
+    // printf("CLS : Clearing screen.\n");
     for(int x = 0; x < WIDTH; x++)
     {
         for(int y = 0; y < HEIGHT; y++)
@@ -117,7 +117,7 @@ t_status sub_ret(chip8_t *c)
     c->pc = c->stack[c->sp];
     /* Decrement PC */
     c->sp--;
-    printf("RET : PC is now %0x (%d) and stack pointer is %d\n", c->pc, c->pc, c->sp);
+    // printf("RET : PC is now %0x (%d) and stack pointer is %d\n", c->pc, c->pc, c->sp);
     return PC_MODIFIED;
 }
 
@@ -134,7 +134,7 @@ t_status jmp(uint16_t *opcode, chip8_t *c)
 {
     uint16_t subop = *opcode & 0xFFF;
     c->pc = subop;
-    printf("JMP addr : jumping to %0x (%d)\n", c->pc, c->pc); 
+    // printf("JMP addr : jumping to %0x (%d)\n", c->pc, c->pc); 
     return PC_MODIFIED;
 }
 
@@ -157,7 +157,7 @@ t_status call_sub(uint16_t *opcode, chip8_t *c)
     }
     c->stack[c->sp] = c->pc+2;
     c->pc = subop;
-   printf("CALL %03x instruction : stack pointer is now %d, pointing on %0x. PC is now %0x(%d)\n", subop, c->sp, c->stack[c->sp], c->pc, c->pc);
+    // printf("CALL %03x instruction : stack pointer is now %d, pointing on %0x. PC is now %0x(%d)\n", subop, c->sp, c->stack[c->sp], c->pc, c->pc);
     return PC_MODIFIED;
 }
 
@@ -174,17 +174,17 @@ t_status skip_eq_val(uint16_t *opcode, chip8_t *c)
     /* Getting value to check and register index  */
     uint8_t value = *opcode & 0xFF;
     uint8_t reg = *opcode >> 8 & 0xF;
-    printf("SE Vx, byte : testing register V%0x value (%0x) against %0x ", reg, c->V[reg], value);
+    // printf("SE Vx, byte : testing register V%0x value (%0x) against %0x ", reg, c->V[reg], value);
     
     /* Checking match */
     if(c->V[reg] == value)
     {   
         c->pc += 2;
-        printf("values are the same, skipping next instruction.\n");
+        // printf("values are the same, skipping next instruction.\n");
     }
     else
     {
-        printf("values are different, no skip.\n");
+        // printf("values are different, no skip.\n");
     }
     return SUCCESS;
 }
@@ -203,17 +203,17 @@ t_status skip_neq_val(uint16_t *opcode, chip8_t *c)
     /* Getting value to check and register index  */
     uint8_t value = *opcode & 0xFF;
     uint8_t reg = *opcode >> 8 & 0xF;
-    printf("SNE Vx, byte : testing register V%0x value (%0x) against %0x ", reg, c->V[reg], value);
+    // printf("SNE Vx, byte : testing register V%0x value (%0x) against %0x ", reg, c->V[reg], value);
     
     /* Checking match */
     if(c->V[reg] != value)
     {   
         c->pc += 2;
-        printf("values are different, skipping next instruction.\n");
+        // printf("values are different, skipping next instruction.\n");
     }
     else
     {
-        printf("values are the same, no skip.\n");
+        // printf("values are the same, no skip.\n");
     }
     return SUCCESS;
 }
@@ -229,15 +229,15 @@ t_status skip_eq_reg(uint16_t *opcode, chip8_t *c)
 {
     uint8_t reg_x = (*opcode & 0x0F00) >> 8;
     uint8_t reg_y = (*opcode & 0x00F0) >> 4;
-    printf("SE Vx, Vy : testing register V%0x value (%0x) against register V%0x value (%0x) ", reg_x, c->V[reg_x], reg_y, c->V[reg_y]);
+    // printf("SE Vx, Vy : testing register V%0x value (%0x) against register V%0x value (%0x) ", reg_x, c->V[reg_x], reg_y, c->V[reg_y]);
     if(c->V[reg_x] == c->V[reg_y])
     {
         c->pc += 2;       
-        printf("values are the same, skipping next instruction.\n");
+        // printf("values are the same, skipping next instruction.\n");
     }
     else
     {  
-        printf("values are different, no skip.\n");
+        // printf("values are different, no skip.\n");
     }
     return SUCCESS;
 }
@@ -252,7 +252,7 @@ t_status skip_eq_reg(uint16_t *opcode, chip8_t *c)
 t_status load_val(uint16_t *opcode, chip8_t *c)
 {
     c->V[(*opcode & 0x0F00) >> 8] = *opcode & 0x00FF;
-    printf("LD Vx, byte : Loaded value %0x in V[%0x]\n", c->V[(*opcode & 0x0F00) >> 8], (*opcode & 0x0F00) >> 8);
+    // printf("LD Vx, byte : Loaded value %0x in V[%0x]\n", c->V[(*opcode & 0x0F00) >> 8], (*opcode & 0x0F00) >> 8);
     return SUCCESS;
 }
 
@@ -264,9 +264,9 @@ t_status load_val(uint16_t *opcode, chip8_t *c)
 */
 t_status add_val(uint16_t *opcode, chip8_t *c)
 {
-	printf("ADD Vx, byte : Adding %0x to V[%d] ", *opcode & 0xFF,(*opcode & 0xF00) >> 8);
+	// printf("ADD Vx, byte : Adding %0x to V[%d] ", *opcode & 0xFF,(*opcode & 0xF00) >> 8);
 	c->V[(*opcode & 0xF00) >> 8] += *opcode & 0xFF;
-	printf("-> register value is now %0x.\n", c->V[(*opcode & 0xF00) >> 8]);
+	// printf("-> register value is now %0x.\n", c->V[(*opcode & 0xF00) >> 8]);
 	return SUCCESS;
 }
 
@@ -312,9 +312,9 @@ t_status process_8(uint16_t *opcode, chip8_t *c)
 */
 t_status load_reg(uint16_t *opcode, chip8_t *c)
 {
-	printf("LD Vx, Vy : Setting the value of V[%0x] (%0x) on value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
+	// printf("LD Vx, Vy : Setting the value of V[%0x] (%0x) on value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
 	c->V[(*opcode & 0xF00) >> 8] = c->V[(*opcode & 0xF0) >> 4];
-	printf("Value has been set on %0x.\n", c->V[(*opcode & 0xF00) >> 8]);
+	// printf("Value has been set on %0x.\n", c->V[(*opcode & 0xF00) >> 8]);
 	return SUCCESS;
 }
 
@@ -325,9 +325,11 @@ t_status load_reg(uint16_t *opcode, chip8_t *c)
 */
 t_status or_reg(uint16_t *opcode, chip8_t *c)
 {
-	printf("OR Vx, Vy : ORing the value of V[%0x] (%0x) with value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
+    // Reset vF
+    c->V[0xF] = 0;
+	// printf("OR Vx, Vy : ORing the value of V[%0x] (%0x) with value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
 	c->V[(*opcode & 0xF00) >> 8] |= c->V[(*opcode & 0xF0) >> 4];
-	printf("Value has been set on %0x.\n", c->V[(*opcode & 0xF00) >> 8]);
+	// printf("Value has been set on %0x.\n", c->V[(*opcode & 0xF00) >> 8]);
 	return SUCCESS;
 }
 
@@ -338,9 +340,11 @@ t_status or_reg(uint16_t *opcode, chip8_t *c)
 */
 t_status and_reg(uint16_t *opcode, chip8_t *c)
 {
-	printf("AND Vx, Vy : ANDing the value of V[%0x] (%0x) with value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
+    // Reset vF
+    c->V[0xF] = 0;
+	// printf("AND Vx, Vy : ANDing the value of V[%0x] (%0x) with value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
     c->V[(*opcode & 0xF00) >> 8] &= c->V[(*opcode & 0xF0) >> 4];
-    printf("Value has been set on %0x.\n", c->V[(*opcode & 0xF00) >> 8]);
+    // printf("Value has been set on %0x.\n", c->V[(*opcode & 0xF00) >> 8]);
 	return SUCCESS;
 }
 
@@ -351,9 +355,11 @@ t_status and_reg(uint16_t *opcode, chip8_t *c)
 */
 t_status xor_reg(uint16_t *opcode, chip8_t *c)
 {
-	printf("XOR Vx, Vy : XORing the value of V[%0x] (%0x) with value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
+    // Reset vF
+    c->V[0xF] = 0;
+	// printf("XOR Vx, Vy : XORing the value of V[%0x] (%0x) with value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
     c->V[(*opcode & 0xF00) >> 8] ^= c->V[(*opcode & 0xF0) >> 4];
-    printf("Value has been set on %0x.\n", c->V[(*opcode & 0xF00) >> 8]);
+    // printf("Value has been set on %0x.\n", c->V[(*opcode & 0xF00) >> 8]);
 	return SUCCESS;
 }
 
@@ -364,14 +370,14 @@ t_status xor_reg(uint16_t *opcode, chip8_t *c)
 */
 t_status add_reg(uint16_t *opcode, chip8_t *c)
 {
-	printf("ADD Vx, Vy : adding the value of V[%0x] (%0x) with value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
+	// printf("ADD Vx, Vy : adding the value of V[%0x] (%0x) with value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
 	
 	/* Adding and put result in X register and carry register (VF)*/
 	uint16_t res = c->V[(*opcode & 0xF00) >> 8] + c->V[(*opcode & 0xF0) >> 4];
 	c->V[(*opcode & 0xF00) >> 8] = res & 0xFF;
 	c->V[0xF] = (res & 0xF00) >> 8;
 
-	printf("Values has been set on V[%0x]: %0x, VF: %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);
+	// printf("Values has been set on V[%0x]: %0x, VF: %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);
 	return SUCCESS;
 }
 
@@ -382,20 +388,20 @@ t_status add_reg(uint16_t *opcode, chip8_t *c)
 */
 t_status sub_reg_xy(uint16_t *opcode, chip8_t *c)
 {
-    printf("SUB Vx, Vy : substracting the value of V[%0x] (%0x) from value of V[%0x] (%0x). ", (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4], (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8]);
+    // printf("SUB Vx, Vy : substracting the value of V[%0x] (%0x) from value of V[%0x] (%0x). ", (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4], (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8]);
 
     // Set VF end value
     uint8_t vf_value = c->V[(*opcode & 0xF00) >> 8] >= c->V[(*opcode & 0xF0) >> 4] ? 1 : 0;
     // Substract
     c->V[(*opcode & 0xF00) >> 8] -= c->V[(*opcode & 0xF0) >> 4];
     
-    if(c->V[0xF])
+    if(vf_value)
     {
-        printf("There was no underflow, V[%0x] is now %0x and V[F] is %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);      
+        // printf("There was no underflow, V[%0x] is now %0x and V[F] is %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);      
     }
     else
     {
-        printf("UNDERFLOW, V[%0x] is now %0x and V[F] is %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);      
+        // printf("UNDERFLOW, V[%0x] is now %0x and V[F] is %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);      
     }
 
     c->V[0xF] = vf_value;
@@ -410,14 +416,16 @@ t_status sub_reg_xy(uint16_t *opcode, chip8_t *c)
 */
 t_status shr_reg(uint16_t *opcode, chip8_t *c)
 {
-    printf("SHR Vx {, Vy} : Dividing V[%0x] (%0x) by 2. ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8]);
+
+    // printf("SHR Vx {, Vy} : Dividing V[%0x] (%0x) by 2. ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8]);
     
+    // Setting VF value
+    uint8_t vf_value = c->V[(*opcode & 0xF00) >> 8] & 0x1; 
     // Dividing by 2
     c->V[(*opcode & 0xF00) >> 8] = c->V[(*opcode & 0xF00) >> 8] >> 1;
     
-    // Setting VF
-    c->V[0xF] = c->V[(*opcode & 0xF00) >> 8] & 0x1;
-    printf("V[%0x] is now %0x. VF has been set on %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);
+    // printf("V[%0x] is now %0x. VF has been set on %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);
+    c->V[0xF] = vf_value;
 	return SUCCESS;
 }
 
@@ -429,20 +437,20 @@ t_status shr_reg(uint16_t *opcode, chip8_t *c)
 */
 t_status sub_reg_yx(uint16_t *opcode, chip8_t *c)
 {
-    printf("SUBN Vx, Vy : substracting the value of V[%0x] (%0x) from value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
+    // printf("SUBN Vx, Vy : substracting the value of V[%0x] (%0x) from value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
 
     // Set VF end value
     uint8_t vf_value = c->V[(*opcode & 0xF0) >> 4] >= c->V[(*opcode & 0xF00) >> 8] ? 1 : 0;
     // Substract
     c->V[(*opcode & 0xF00) >> 8] = c->V[(*opcode & 0xF0) >> 4] - c->V[(*opcode & 0xF00) >> 8];
     
-    if(c->V[0xF])
+    if(vf_value)
     {
-        printf("There was no underflow, V[%0x] is now %0x and V[F] is %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);      
+        // printf("There was no underflow, V[%0x] is now %0x and V[F] is %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);      
     }
     else
     {
-        printf("UNDERFLOW, V[%0x] is now %0x and V[F] is %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);      
+        // printf("UNDERFLOW, V[%0x] is now %0x and V[F] is %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);      
     }
     c->V[0xF] = vf_value;
 	return SUCCESS;
@@ -456,14 +464,14 @@ t_status sub_reg_yx(uint16_t *opcode, chip8_t *c)
 */
 t_status shl_reg(uint16_t *opcode, chip8_t *c)
 {
-    printf("SHL Vx {, Vy} : Multiplying V[%0x] (%0x) by 2. ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8]);
+    // printf("SHL Vx {, Vy} : Multiplying V[%0x] (%0x) by 2. ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8]);
     
     // Setting VF
-    c->V[0xF] = (c->V[(*opcode & 0xF00) >> 8] & 128) ? 1 : 0;
+    uint8_t vf_value = (c->V[(*opcode & 0xF00) >> 8] & 128) ? 1 : 0;
     // Dividing by 2
     c->V[(*opcode & 0xF00) >> 8] = c->V[(*opcode & 0xF00) >> 8] << 1;
-    
-    printf("V[%0x] is now %0x. VF has been set on %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);
+    c->V[0xF] =  vf_value;
+    // printf("V[%0x] is now %0x. VF has been set on %d.\n", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], c->V[0xF]);
 	return SUCCESS;
 }
 
@@ -479,15 +487,15 @@ t_status skip_neq_reg(uint16_t *opcode, chip8_t *c)
     uint8_t reg_x, reg_y;
     reg_x = (*opcode & 0xF00) >> 8;
     reg_y = (*opcode & 0xF0) >> 4;
-    printf("SNE Vx, Vy : testing register V%0x value (%0x) against register V%0x value (%0x) ", reg_x, c->V[reg_x], reg_y, c->V[reg_y]);
+    // printf("SNE Vx, Vy : testing register V%0x value (%0x) against register V%0x value (%0x) ", reg_x, c->V[reg_x], reg_y, c->V[reg_y]);
     if(c->V[(*opcode & 0xF00) >> 8] != c->V[(*opcode & 0xF0) >> 4])
     {
-        printf("Values are not equal, skipping next instruction.\n");
+        // printf("Values are not equal, skipping next instruction.\n");
         c->pc += 2;
     }
     else
     {
-        printf("Values are equal, no skip.\n");
+        // printf("Values are equal, no skip.\n");
     }
     return SUCCESS;
 }
@@ -500,9 +508,9 @@ t_status skip_neq_reg(uint16_t *opcode, chip8_t *c)
 */
 t_status load_i(uint16_t *opcode, chip8_t *c)
 {
-    printf("LD I, addr : Setting reg I to ");
+    // printf("LD I, addr : Setting reg I to ");
     c->I = *opcode & 0XFFF;
-    printf(" %0x.\n", c->I);
+    // printf(" %0x.\n", c->I);
     return SUCCESS;
 }
 
@@ -514,9 +522,9 @@ t_status load_i(uint16_t *opcode, chip8_t *c)
 */
 t_status jmp_plus(uint16_t *opcode, chip8_t *c)
 {
-    printf("JP V0, addr : Setting program counter to V0 (%0x) + %0x -> ", c->V[0x0], *opcode & 0xFFF);
+    // printf("JP V0, addr : Setting program counter to V0 (%0x) + %0x -> ", c->V[0x0], *opcode & 0xFFF);
     c->pc = c->V[0x0] + (*opcode & 0xFFF);
-    printf("%0x\n", c->pc);
+    // printf("%0x\n", c->pc);
     return PC_MODIFIED;
 }
 
@@ -533,7 +541,7 @@ t_status rnd_and(uint16_t *opcode, chip8_t *c)
     uint8_t reg_x = (*opcode & 0xF00) >> 8;
     uint8_t rnd = rand() % 256;
     c->V[reg_x] = rnd & (*opcode & 0xFF);
-    printf("RND Vx, byte : Generating a random number : %0x - ANDing it with %0x. Result : %0x.\n", rnd, *opcode & 0xFF, c->V[reg_x]);
+    // printf("RND Vx, byte : Generating a random number : %0x - ANDing it with %0x. Result : %0x.\n", rnd, *opcode & 0xFF, c->V[reg_x]);
     return SUCCESS;
 }
 
@@ -554,35 +562,39 @@ t_status draw(uint16_t *opcode, chip8_t *c)
     reg_x = c->V[(*opcode & 0xF00) >> 8];
     reg_y = c->V[(*opcode & 0xF0) >> 4];
     uint16_t addr = c->I;
-    printf("##############\nEntering draw func with values :\n - Vx = %d\n - Vy = %d\n - I = %d\n", reg_x, reg_y, c->I);
-    // Reset flag register to check for collision (XOR)
+
+    // If X > WIDTH or Y > HEIGHT, wrap them.
+    uint8_t x_start = reg_x > WIDTH ? reg_x % WIDTH : reg_x;
+    uint8_t y_start = reg_y > HEIGHT ? reg_y % HEIGHT : reg_y;
     c->V[0xF] = 0;
+    // printf("##############\nEntering draw func with values :\n - Vx = %d\n - Vy = %d\n - I = %d\n", reg_x, reg_y, c->I);
 
     // Iterate through all lines of sprite (n)
-    for(uint8_t y = 0; y < n; y++)
+    for(uint8_t y = 0; y < n && (y_start + y) < HEIGHT; y++)
     {
         // Getting the line
         uint8_t sprite = c->ram[addr + y];
-        printf("Next line to print : %0x\n", sprite);
-        // Get wrapped Y
-        uint8_t wrap_y = (reg_y + y) % HEIGHT;
+        // printf("Next line to print : %0x\n", sprite);
+
         // Iterate through pixels
-        for(uint8_t x = 0; x < 8; x++)
+        for(uint8_t x = 0; x < 8 && (x_start + x) < WIDTH; x++)
         {
-            // Get wrapped X
-            uint8_t wrap_x = (reg_x + x) % WIDTH;
             // Masking the current observed pixel
             uint8_t px = (sprite >> (7 - x)) & 1;
             // Checking for collision (refactor later for a true XOR ?) and put display value according to it
-            if(px & c->display[wrap_x][wrap_y])
+            if(px)
             {
-                c->V[0xF] = 1;
-                c->display[wrap_x][wrap_y] = 0;
+                if(c->display[x_start+x][y_start+y])
+                {
+                    c->V[0xF] = 1;
+                    c->display[x_start+x][y_start+y] = 0;
+                }
+                else
+                {
+                    c->display[x_start+x][y_start+y] = px;
+                }
             }
-            else
-            {
-                c->display[wrap_x][wrap_y] = px;
-            }
+            
         }
     }
 
@@ -606,22 +618,6 @@ t_status draw(uint16_t *opcode, chip8_t *c)
     }
 
     SDL_RenderPresent(c->renderer);
-    printf("DRW Vx, Vy, nibble : Displaying \n");
-    for(int y = 0; y < HEIGHT; y++)
-    {
-        for(int x = 0; x < WIDTH; x++)
-        {
-            if(c->display[x][y])
-            {
-                printf("█");
-            }
-            else
-            {
-                printf(" ");
-            }
-        }
-        printf("\n");
-    }
 }
 
 /* Nibble E */
@@ -645,15 +641,15 @@ t_status process_e(uint16_t *opcode, chip8_t *c)
 t_status skip_prsd(uint16_t *opcode, chip8_t *c)
 {
     uint8_t reg_x = (*opcode & 0xF00) >> 8;
-    printf("SKP Vx : Checking if V[%0x] (%0x) is pressed.\n", reg_x, c->V[reg_x]);
+    // printf("SKP Vx : Checking if V[%0x] (%0x) is pressed.\n", reg_x, c->V[reg_x]);
     if(c->keys[c->V[reg_x]])
     {
-        printf("Key pressed, skipping next instruction.\n");
+        // printf("Key pressed, skipping next instruction.\n");
         c->pc += 2;
     }
     else
     {
-        printf("Key not pressed.\n");
+        // printf("Key not pressed.\n");
     }
     return SUCCESS;
 }
@@ -666,15 +662,15 @@ t_status skip_prsd(uint16_t *opcode, chip8_t *c)
 t_status skip_nprsd(uint16_t *opcode, chip8_t *c)
 {
     uint8_t reg_x = (*opcode & 0xF00) >> 8;
-    printf("SKP Vx : Checking if V[%0x] (%0x) is pressed.\n", reg_x, c->V[reg_x]);
+    // printf("SKP Vx : Checking if V[%0x] (%0x) is pressed.\n", reg_x, c->V[reg_x]);
     if(!c->keys[c->V[reg_x]])
     {
-        printf("Key pressed, skipping next instruction.\n");
+        // printf("Key pressed, skipping next instruction.\n");
         c->pc += 2;
     }
     else
     {
-        printf("Key not pressed.\n");
+        // printf("Key not pressed.\n");
     }
     return SUCCESS;
 }
@@ -723,7 +719,7 @@ t_status store_reg(uint16_t *opcode, chip8_t *c)
     // Store values from v0 to v[reg_x];
     for(uint8_t i = 0; i <= reg_x; i++) 
     {
-        c->ram[c->I + i] = *(c->V + i);
+        c->ram[c->I++] = c->V[i];
     }
     return SUCCESS;
 }
@@ -736,7 +732,7 @@ t_status read_reg(uint16_t *opcode, chip8_t *c)
     // Store values from v0 to v[reg_x];
     for(uint8_t i = 0; i <= reg_x; i++) 
     {
-        *(c->V + i) = c->ram[c->I + i];
+        c->V[i] = c->ram[c->I++];
     }
     return SUCCESS;
 }

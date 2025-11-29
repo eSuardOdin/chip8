@@ -212,7 +212,7 @@ void *decrement_timers(void *chip) {
         pthread_mutex_lock(&mut);
 		if(c->s_timer)
 		{
-			printf("SOUND TIMER IS %d.\n", c->s_timer);
+			// printf("SOUND TIMER IS %d.\n", c->s_timer);
 			c->s_timer--;
 		}
 		if(c->d_timer)
