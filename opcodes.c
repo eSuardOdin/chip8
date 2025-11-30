@@ -325,11 +325,11 @@ t_status load_reg(uint16_t *opcode, chip8_t *c)
 */
 t_status or_reg(uint16_t *opcode, chip8_t *c)
 {
-    // Reset vF
-    c->V[0xF] = 0;
-	// printf("OR Vx, Vy : ORing the value of V[%0x] (%0x) with value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
+    // printf("OR Vx, Vy : ORing the value of V[%0x] (%0x) with value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
 	c->V[(*opcode & 0xF00) >> 8] |= c->V[(*opcode & 0xF0) >> 4];
 	// printf("Value has been set on %0x.\n", c->V[(*opcode & 0xF00) >> 8]);
+    // Reset vF
+    c->V[0xF] = 0;
 	return SUCCESS;
 }
 
@@ -340,11 +340,11 @@ t_status or_reg(uint16_t *opcode, chip8_t *c)
 */
 t_status and_reg(uint16_t *opcode, chip8_t *c)
 {
-    // Reset vF
-    c->V[0xF] = 0;
-	// printf("AND Vx, Vy : ANDing the value of V[%0x] (%0x) with value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
+    // printf("AND Vx, Vy : ANDing the value of V[%0x] (%0x) with value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
     c->V[(*opcode & 0xF00) >> 8] &= c->V[(*opcode & 0xF0) >> 4];
     // printf("Value has been set on %0x.\n", c->V[(*opcode & 0xF00) >> 8]);
+    // Reset vF
+    c->V[0xF] = 0;
 	return SUCCESS;
 }
 
@@ -355,11 +355,11 @@ t_status and_reg(uint16_t *opcode, chip8_t *c)
 */
 t_status xor_reg(uint16_t *opcode, chip8_t *c)
 {
-    // Reset vF
-    c->V[0xF] = 0;
-	// printf("XOR Vx, Vy : XORing the value of V[%0x] (%0x) with value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
+    // printf("XOR Vx, Vy : XORing the value of V[%0x] (%0x) with value of V[%0x] (%0x). ", (*opcode & 0xF00) >> 8, c->V[(*opcode & 0xF00) >> 8], (*opcode & 0xF0) >> 4, c->V[(*opcode & 0xF0) >> 4]);
     c->V[(*opcode & 0xF00) >> 8] ^= c->V[(*opcode & 0xF0) >> 4];
     // printf("Value has been set on %0x.\n", c->V[(*opcode & 0xF00) >> 8]);
+    // Reset vF
+    c->V[0xF] = 0;
 	return SUCCESS;
 }
 
